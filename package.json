@@ -1,0 +1,34 @@
+{
+  "name": "ct-service-survey",
+  "version": "1.0.0",
+  "description": "ChurchTool Service Survey Tool - Terminumfrage-System für ChurchTools-Dienste",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "sync:env": "node scripts/sync-env.mjs",
+    "dev:frontend": "npm run sync:env && npm run dev --workspace=@ct-service-survey/frontend",
+    "dev:backend": "npm run sync:env && cd packages/backend && func start",
+    "build:shared": "npm run build --workspace=@ct-service-survey/shared",
+    "build:frontend": "npm run build --workspace=@ct-service-survey/frontend",
+    "build:backend": "cd packages/backend && dotnet build",
+    "build:all": "npm run build:shared && npm run build:frontend && npm run build:backend",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && cd packages/backend && dotnet clean"
+  },
+  "keywords": [
+    "churchtool",
+    "survey",
+    "scheduling",
+    "azure",
+    "functions",
+    "react"
+  ],
+  "author": "EaglesJungscharen",
+  "license": "Apache-2.0"
+}

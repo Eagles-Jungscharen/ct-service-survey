@@ -1,0 +1,137 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-shared:
+    runs-on: ubuntu-latest
+    name: Build Shared Package
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build shared package
+        run: npm run build:shared
+      
+      - name: Upload shared artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-dist
+          path: packages/shared/dist/
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    name: Build Frontend
+    needs: build-shared
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Download shared artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-dist
+          path: packages/shared/dist/
+      
+      - name: Lint frontend
+        run: npm run lint --workspace=@ct-service-survey/frontend
+      
+      - name: Build frontend
+        run: npm run build:frontend
+      
+      - name: Upload frontend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: packages/frontend/dist/
+
+  build-backend:
+    runs-on: ubuntu-latest
+    name: Build Backend
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      
+      - name: Restore backend dependencies
+        run: dotnet restore packages/backend/ct-service-survey-azfunctions.csproj
+      
+      - name: Build backend
+        run: dotnet build packages/backend/ct-service-survey-azfunctions.csproj --configuration Release --no-restore
+      
+      - name: Upload backend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: packages/backend/bin/Release/
+
+  # Uncomment and configure for automated deployment
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   name: Deploy to Azure
+  #   needs: [build-frontend, build-backend]
+  #   if: github.ref == 'refs/heads/main'
+  #   
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     
+  #     - name: Azure Login
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #     
+  #     - name: Download frontend artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: frontend-dist
+  #         path: packages/frontend/dist/
+  #     
+  #     - name: Deploy frontend to Azure
+  #       uses: azure/CLI@v1
+  #       with:
+  #         inlineScript: |
+  #           az storage blob upload-batch \
+  #             --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+  #             --destination '$web' \
+  #             --source packages/frontend/dist \
+  #             --auth-mode login \
+  #             --overwrite
+  #     
+  #     - name: Download backend artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: backend-dist
+  #         path: packages/backend/bin/Release/
+  #     
+  #     - name: Deploy backend to Azure Functions
+  #       uses: Azure/functions-action@v1
+  #       with:
+  #         app-name: ${{ secrets.AZURE_FUNCTION_APP_NAME }}
+  #         package: packages/backend/bin/Release/net10.0

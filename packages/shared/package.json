@@ -1,0 +1,22 @@
+{
+  "name": "@ct-service-survey/shared",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for ct-service-survey",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "dto"
+  ],
+  "author": "EaglesJungscharen",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
