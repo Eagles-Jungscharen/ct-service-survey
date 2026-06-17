@@ -14,6 +14,7 @@
     "sync:env": "node scripts/sync-env.mjs",
     "dev:frontend": "npm run sync:env && npm run dev --workspace=@ct-service-survey/frontend",
     "dev:backend": "npm run sync:env && cd packages/backend && func start",
+    "generate:types": "dotnet run --project packages/backend/Tools/DtoTypeGenerator/DtoTypeGenerator.csproj -- packages/shared/src/generated/dtos.ts",
     "build:shared": "npm run build --workspace=@ct-service-survey/shared",
     "build:frontend": "npm run build --workspace=@ct-service-survey/frontend",
     "build:backend": "cd packages/backend && dotnet build",
