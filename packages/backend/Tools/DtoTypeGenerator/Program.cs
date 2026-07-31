@@ -11,6 +11,8 @@ var exportedTypes = new[]
     typeof(ErrorRecord),
     typeof(MeDto),
     typeof(SurveyRequestDto),
+    typeof(SurveyRequestStatus),
+    typeof(SurveyRequestEntryDto),
 };
 
 var builder = new StringBuilder();
@@ -19,7 +21,24 @@ builder.AppendLine("// This file is generated from backend DTO and request model
 builder.AppendLine("// Do not edit manually.");
 builder.AppendLine();
 
-foreach (var type in exportedTypes.OrderBy(t => t.Name, StringComparer.Ordinal))
+var enumTypes = new HashSet<Type>();
+
+foreach (var type in exportedTypes)
+{
+    CollectEnumTypes(type, enumTypes);
+}
+
+foreach (var enumType in enumTypes.OrderBy(t => t.Name, StringComparer.Ordinal))
+{
+    var values = Enum.GetNames(enumType)
+        .Select(static name => $"'{JsonNamingPolicy.CamelCase.ConvertName(name)}'");
+
+    builder.AppendLine($"export type {enumType.Name} = {string.Join(" | ", values)};");
+    builder.AppendLine();
+}
+
+
+foreach (var type in exportedTypes.Where(t => !t.IsEnum).OrderBy(t => t.Name, StringComparer.Ordinal))
 {
     builder.AppendLine($"export interface {type.Name} {{");
 
@@ -80,8 +99,7 @@ static string ToTypeScriptType(Type type)
 
     if (type.IsEnum)
     {
-        var values = Enum.GetNames(type).Select(static name => $"'{JsonNamingPolicy.CamelCase.ConvertName(name)}'");
-        return string.Join(" | ", values);
+        return type.Name;
     }
 
     if (type == typeof(byte) || type == typeof(sbyte) ||
@@ -113,3 +131,26 @@ static string ToTypeScriptType(Type type)
 
     return type.Name;
 }
+
+static void CollectEnumTypes(Type type, HashSet<Type> enumTypes)
+{
+    if (type.IsEnum)
+    {
+        enumTypes.Add(type);
+        return;
+    }
+    if (type.IsArray)
+    {
+        CollectEnumTypes(type.GetElementType()!, enumTypes);
+        return;
+    }
+
+    if (type.IsGenericType)
+    {
+        foreach (var argument in type.GetGenericArguments())
+        {
+            CollectEnumTypes(argument, enumTypes);
+        }
+        return;
+    }
+ }

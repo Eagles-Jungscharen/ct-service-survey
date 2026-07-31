@@ -2,6 +2,8 @@
 // This file is generated from backend DTO and request models.
 // Do not edit manually.
 
+export type SurveyRequestStatus = 'draft' | 'inSurvey' | 'closed';
+
 export interface ErrorRecord {
   message: string;
   errorCode: number;
@@ -15,8 +17,17 @@ export interface MeDto {
 
 export interface SurveyRequestDto {
   surveyId: string;
-  createrId: string;
+  creatorId: string;
+  creatorName: string;
   title: string;
-  dates: string[];
+  description: string;
+  status: SurveyRequestStatus;
+  entries: SurveyRequestEntryDto[];
+}
+
+export interface SurveyRequestEntryDto {
+  eventId: string;
+  date: string;
+  eventName: string;
 }
 
