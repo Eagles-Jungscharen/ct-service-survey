@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ct-service-survey-azfunctions.csproj" />
+  <Project Path="Tools/DtoTypeGenerator/DtoTypeGenerator.csproj" />
+</Solution>

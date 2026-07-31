@@ -2,6 +2,11 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EaglesJungscharen.Azure.ChurchToolIDPServices;
+using EaglesJungscharen.Azure.ChurchToolIDPServices.Extensions;
+using EaglesJungscharen.Azure.ChurchToolIDPServices.Middleware;
+using GuedesPlace.AzureTools.Configuration.Extensions;
+using GuedesPlace.AzureTools.Tables;
+using Azure.Storage.Blobs;
 using GuedesPlace.AzureTools.Tables;
 
 var host = new HostBuilder()

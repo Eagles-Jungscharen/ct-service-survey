@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
-using EaglesJungscharen.Azure.ServiceSurvey.Models.Requests;
 
 var outputPath = args.Length > 0 ? args[0] : "packages/shared/src/generated/dtos.ts";
 var nullabilityContext = new NullabilityInfoContext();
@@ -10,14 +9,8 @@ var nullabilityContext = new NullabilityInfoContext();
 var exportedTypes = new[]
 {
     typeof(ErrorRecord),
-    typeof(GroupDto),
     typeof(MeDto),
-    typeof(RechnungsprofilDto),
-    typeof(RechnungspositionDto),
-    typeof(RechnungDto),
-    typeof(CreateUpdateRechnungspositionRequest),
-    typeof(CreateUpdateRechnungRequest),
-    typeof(CreateUpdateRechnungsprofilRequest),
+    typeof(SurveyRequestDto),
 };
 
 var builder = new StringBuilder();
