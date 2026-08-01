@@ -36,10 +36,16 @@ export interface ErrorRecord {
   message?: string;
 }
 
+export interface GroupDto {
+  id: string;
+  title: string;
+}
+
 export interface MeDto {
   userId: string;
   displayName: string;
   isAdmin: boolean;
+  groups: GroupDto[];
 }
 
 export interface MyAssignmentDto {
