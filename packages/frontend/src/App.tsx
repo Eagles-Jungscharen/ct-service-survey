@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { FluentProvider, webLightTheme, makeStyles, tokens, Spinner } from '@fluentui/react-components'
 import { AuthProvider, useAuth } from 'react-oidc-context'
@@ -14,6 +14,7 @@ import { CreateSurveyPage } from './pages/CreateSurveyPage'
 import { AddServiceDatePage } from './pages/AddServiceDatePage'
 import { AssignmentsPage } from './pages/AssignmentsPage'
 import { CallbackPage } from './pages/CallbackPage'
+import { HomePage } from './pages/HomePage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { UserMenu } from './components/UserMenu'
 
@@ -93,26 +94,28 @@ function AppContent() {
   return (
     <BrowserRouter>
       <div className={styles.app}>
-        <header className={styles.header}>
-          <div className={styles.headerContent}>
-            <h1>ChurchTools Service Survey</h1>
-            <UserMenu />
-          </div>
-          <nav className={styles.nav}>
-            <Link to="/surveys" className={styles.navLink}>
-              Umfragen
-            </Link>
-            <Link to="/my-assignments" className={styles.navLink}>
-              Meine Einteilungen
-            </Link>
-            <Link to="/admin/surveys" className={styles.navLink}>
-              Verwaltung
-            </Link>
-          </nav>
-        </header>
+        {auth.isAuthenticated && (
+          <header className={styles.header}>
+            <div className={styles.headerContent}>
+              <h1>ChurchTools Service Survey</h1>
+              <UserMenu />
+            </div>
+            <nav className={styles.nav}>
+              <Link to="/surveys" className={styles.navLink}>
+                Umfragen
+              </Link>
+              <Link to="/my-assignments" className={styles.navLink}>
+                Meine Einteilungen
+              </Link>
+              <Link to="/admin/surveys" className={styles.navLink}>
+                Verwaltung
+              </Link>
+            </nav>
+          </header>
+        )}
         <main className={styles.main}>
           <Routes>
-            <Route path="/" element={<Navigate to="/surveys" replace />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/callback" element={<CallbackPage />} />
             
             {/* Öffentliche/Geschützte Routen */}
