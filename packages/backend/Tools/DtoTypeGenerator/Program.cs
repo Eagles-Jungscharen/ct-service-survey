@@ -10,6 +10,7 @@ var exportedTypes = new[]
 {
     typeof(ErrorRecord),
     typeof(MeDto),
+    typeof(GroupDto),
     // Legacy DTOs (wird später entfernt)
     typeof(SurveyRequestDto),
     typeof(SurveyRequestStatus),

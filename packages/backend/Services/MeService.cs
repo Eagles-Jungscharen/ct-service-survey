@@ -1,20 +1,20 @@
 using System.Security.Claims;
-using EaglesJungscharen.Azure.BillingTool.Models;
-using EaglesJungscharen.Azure.BillingTool.Models.Dtos;
 using EaglesJungscharen.Azure.ChurchToolIDPServices.Services;
+using EaglesJungscharen.Azure.ServiceSurvey.Models;
+using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace EaglesJungscharen.Azure.BillingTool.Services;
+namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 
 public class MeService(
     ChurchToolsClientFactory clientFactory,
     ILogger<MeService> logger,
-    IOptions<BillingToolConfiguration> options) : IMeService
+    IOptions<ServiceSurveyConfiguration> options) : IMeService
 {
     private readonly ChurchToolsClientFactory _clientFactory = clientFactory;
     private readonly ILogger<MeService> _logger = logger;
-    private readonly BillingToolConfiguration _config = options.Value;
+    private readonly ServiceSurveyConfiguration _config = options.Value;
 
     public async Task<MeDto> GetMeDtoAsync(ClaimsPrincipal user, string userId)
     {
