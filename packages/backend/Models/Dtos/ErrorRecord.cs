@@ -2,9 +2,13 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 
 /// <summary>
 /// Fehler-Response gemäß Repository-Konventionen
-/// error: deutsche Fehlermeldung (primär)
-/// message: optionale Kopie für Kompatibilität
+/// Error: deutsche Fehlermeldung
+/// ErrorCode: numerischer Fehlercode zur Identifikation
+/// 1xxx: Authentifizierung & Autorisierung
+/// 2xxx: Validierung
+/// 3xxx: Ressource nicht gefunden
+/// 5xxx: Interner Serverfehler
 /// </summary>
 public record ErrorRecord(
     string Error,
-    string? Message = null);
+    int ErrorCode);

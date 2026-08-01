@@ -41,7 +41,7 @@ public class SurveysFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
@@ -62,7 +62,7 @@ public class SurveysFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der Umfragen.");
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Umfragen."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Umfragen.", 5000))
             {
                 StatusCode = 500
             };
@@ -79,7 +79,7 @@ public class SurveysFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
@@ -87,13 +87,13 @@ public class SurveysFunction
             var survey = await _surveyService.GetSurveyByIdAsync(surveyId);
             if (survey == null)
             {
-                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden."));
+                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden.", 3001));
             }
 
             // User darf nur Active/Closed sehen, Admin alles
             if (!isAdmin && survey.Status != SurveyStatus.Active && survey.Status != SurveyStatus.Closed)
             {
-                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden."));
+                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden.", 3001));
             }
 
             return new OkObjectResult(survey);
@@ -101,7 +101,7 @@ public class SurveysFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Umfrage."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Umfrage.", 5000))
             {
                 StatusCode = 500
             };
@@ -117,14 +117,14 @@ public class SurveysFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
 
             if (!isAdmin)
             {
-                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Erstellen von Umfragen."))
+                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Erstellen von Umfragen.", 1003))
                 {
                     StatusCode = 403
                 };
@@ -133,18 +133,18 @@ public class SurveysFunction
             var request = await JsonSerializer.DeserializeAsync<CreateSurveyRequest>(req.Body);
             if (request == null)
             {
-                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage."));
+                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
             }
 
             // Validierung
             if (string.IsNullOrWhiteSpace(request.Title))
             {
-                return new BadRequestObjectResult(new ErrorRecord("Titel darf nicht leer sein."));
+                return new BadRequestObjectResult(new ErrorRecord("Titel darf nicht leer sein.", 2002));
             }
 
             if (request.Dates == null || request.Dates.Count == 0)
             {
-                return new BadRequestObjectResult(new ErrorRecord("Mindestens ein Termin muss angegeben werden."));
+                return new BadRequestObjectResult(new ErrorRecord("Mindestens ein Termin muss angegeben werden.", 2003));
             }
 
             var survey = await _surveyService.CreateSurveyAsync(request, userId, displayName);
@@ -156,7 +156,7 @@ public class SurveysFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Erstellen der Umfrage.");
-            return new ObjectResult(new ErrorRecord("Fehler beim Erstellen der Umfrage."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Erstellen der Umfrage.", 5001))
             {
                 StatusCode = 500
             };
@@ -173,7 +173,7 @@ public class SurveysFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
@@ -181,38 +181,38 @@ public class SurveysFunction
             var request = await JsonSerializer.DeserializeAsync<UpdateSurveyRequest>(req.Body);
             if (request == null)
             {
-                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage."));
+                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
             }
 
             // Validierung
             if (string.IsNullOrWhiteSpace(request.Title))
             {
-                return new BadRequestObjectResult(new ErrorRecord("Titel darf nicht leer sein."));
+                return new BadRequestObjectResult(new ErrorRecord("Titel darf nicht leer sein.", 2002));
             }
 
             var survey = await _surveyService.UpdateSurveyAsync(surveyId, request, userId, isAdmin);
             if (survey == null)
             {
-                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden."));
+                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden.", 3001));
             }
 
             return new OkObjectResult(survey);
         }
         catch (UnauthorizedAccessException)
         {
-            return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Bearbeiten dieser Umfrage."))
+            return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Bearbeiten dieser Umfrage.", 1002))
             {
                 StatusCode = 403
             };
         }
         catch (InvalidOperationException ex)
         {
-            return new BadRequestObjectResult(new ErrorRecord(ex.Message));
+            return new BadRequestObjectResult(new ErrorRecord(ex.Message, 4000));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Aktualisieren der Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Aktualisieren der Umfrage."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Aktualisieren der Umfrage.", 5002))
             {
                 StatusCode = 500
             };
@@ -229,7 +229,7 @@ public class SurveysFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
@@ -237,26 +237,26 @@ public class SurveysFunction
             var deleted = await _surveyService.DeleteSurveyAsync(surveyId, userId, isAdmin);
             if (!deleted)
             {
-                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden."));
+                return new NotFoundObjectResult(new ErrorRecord("Umfrage wurde nicht gefunden.", 3001));
             }
 
             return new NoContentResult();
         }
         catch (UnauthorizedAccessException)
         {
-            return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Löschen dieser Umfrage."))
+            return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Löschen dieser Umfrage.", 1002))
             {
                 StatusCode = 403
             };
         }
         catch (InvalidOperationException ex)
         {
-            return new BadRequestObjectResult(new ErrorRecord(ex.Message));
+            return new BadRequestObjectResult(new ErrorRecord(ex.Message, 4000));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Löschen der Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Löschen der Umfrage."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Löschen der Umfrage.", 5003))
             {
                 StatusCode = 500
             };

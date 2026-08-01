@@ -1,4 +1,16 @@
 import { API_BASE_URL } from '../../config/api'
+import type { ErrorRecord } from '@ct-service-survey/shared'
+
+// Custom Error-Klasse für API-Fehler mit Fehlercode
+export class ApiError extends Error {
+  public readonly code: number
+
+  constructor(message: string, code: number = 0) {
+    super(message)
+    this.name = 'ApiError'
+    this.code = code
+  }
+}
 
 // Base API client mit Auth-Header-Support
 class ApiClient {
@@ -46,9 +58,10 @@ class ApiClient {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      const errorMessage = errorData.error || errorData.message || 'Ein Fehler ist aufgetreten'
-      throw new Error(errorMessage)
+      const errorData = await response.json().catch(() => ({})) as Partial<ErrorRecord>
+      const errorMessage = errorData.error || 'Ein Fehler ist aufgetreten'
+      const errorCode = errorData.errorCode || 0
+      throw new ApiError(errorMessage, errorCode)
     }
 
     return response.json()

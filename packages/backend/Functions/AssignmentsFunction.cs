@@ -40,7 +40,7 @@ public class AssignmentsFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
@@ -51,7 +51,7 @@ public class AssignmentsFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der eigenen Einteilungen.");
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Einteilungen."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Einteilungen.", 5000))
             {
                 StatusCode = 500
             };
@@ -68,14 +68,14 @@ public class AssignmentsFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
 
             if (!isAdmin)
             {
-                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Abrufen der Einteilungen."))
+                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Abrufen der Einteilungen.", 1003))
                 {
                     StatusCode = 403
                 };
@@ -87,7 +87,7 @@ public class AssignmentsFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der Einteilungen für Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Einteilungen."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Einteilungen.", 5000))
             {
                 StatusCode = 500
             };
@@ -103,14 +103,14 @@ public class AssignmentsFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
 
             if (!isAdmin)
             {
-                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Vornehmen von Einteilungen."))
+                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Vornehmen von Einteilungen.", 1003))
                 {
                     StatusCode = 403
                 };
@@ -119,7 +119,7 @@ public class AssignmentsFunction
             var request = await JsonSerializer.DeserializeAsync<SubmitAssignmentsRequest>(req.Body);
             if (request == null)
             {
-                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage."));
+                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
             }
 
             var assignments = await _assignmentService.SubmitAssignmentsAsync(request, userId);
@@ -128,7 +128,7 @@ public class AssignmentsFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Speichern der Einteilungen.");
-            return new ObjectResult(new ErrorRecord("Fehler beim Speichern der Einteilungen."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Speichern der Einteilungen.", 5004))
             {
                 StatusCode = 500
             };

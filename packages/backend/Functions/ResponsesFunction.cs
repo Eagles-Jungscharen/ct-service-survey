@@ -41,7 +41,7 @@ public class ResponsesFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
@@ -52,7 +52,7 @@ public class ResponsesFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der eigenen Rückmeldungen für Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen.", 5000))
             {
                 StatusCode = 500
             };
@@ -69,14 +69,14 @@ public class ResponsesFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
 
             if (!isAdmin)
             {
-                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Abrufen aller Rückmeldungen."))
+                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Abrufen aller Rückmeldungen.", 1003))
                 {
                     StatusCode = 403
                 };
@@ -88,7 +88,7 @@ public class ResponsesFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen aller Rückmeldungen für Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen.", 5000))
             {
                 StatusCode = 500
             };
@@ -104,7 +104,7 @@ public class ResponsesFunction
             var userInfo = GetUserFromClaims(req.HttpContext.User);
             if (userInfo == null)
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich."));
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
             }
 
             var (userId, displayName, isAdmin) = userInfo.Value;
@@ -112,13 +112,13 @@ public class ResponsesFunction
             var request = await JsonSerializer.DeserializeAsync<SubmitResponsesRequest>(req.Body);
             if (request == null)
             {
-                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage."));
+                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
             }
 
             // Validierung
             if (request.Responses == null || request.Responses.Count == 0)
             {
-                return new BadRequestObjectResult(new ErrorRecord("Mindestens eine Rückmeldung muss angegeben werden."));
+                return new BadRequestObjectResult(new ErrorRecord("Mindestens eine Rückmeldung muss angegeben werden.", 2004));
             }
 
             var responses = await _responseService.SubmitResponsesAsync(request, userId, displayName);
@@ -127,7 +127,7 @@ public class ResponsesFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Speichern der Rückmeldungen.");
-            return new ObjectResult(new ErrorRecord("Fehler beim Speichern der Rückmeldungen."))
+            return new ObjectResult(new ErrorRecord("Fehler beim Speichern der Rückmeldungen.", 5004))
             {
                 StatusCode = 500
             };

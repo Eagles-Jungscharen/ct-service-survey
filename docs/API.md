@@ -314,35 +314,65 @@ Liste aller verfügbaren Dienste (aus ChurchTools).
 
 ### Fehlerformat
 
+Alle API-Fehler werden im folgenden Format zurückgegeben:
+
 ```json
 {
-  "message": "Validation failed",
-  "code": 1002,
-  "details": "Field 'name' is required"
+  "error": "Titel darf nicht leer sein.",
+  "errorCode": 2002
 }
 ```
 
-### Standard-Fehler-Codes
+**Felder:**
+- `error` (string): Deutsche Fehlermeldung für den Benutzer
+- `errorCode` (number): Numerischer Fehlercode zur Identifikation
 
+### Fehlercode-Kategorien
+
+**1xxx - Authentifizierung & Autorisierung**
 | Code | Beschreibung |
 |------|-------------|
-| `1001` | Nicht authentifiziert |
-| `1002` | Validierungsfehler |
-| `1003` | Keine Berechtigung (nicht Admin) |
-| `1004` | Ressource nicht gefunden |
-| `1005` | Konflikt (z.B. doppelte Einteilung) |
+| `1001` | Authentifizierung erforderlich |
+| `1002` | Keine Berechtigung (allgemein) |
+| `1003` | Keine Admin-Berechtigung |
+
+**2xxx - Validierung**
+| Code | Beschreibung |
+|------|-------------|
+| `2001` | Ungültige Anfrage |
+| `2002` | Titel darf nicht leer sein |
+| `2003` | Mindestens ein Termin muss angegeben werden |
+| `2004` | Mindestens eine Rückmeldung muss angegeben werden |
+
+**3xxx - Ressource nicht gefunden**
+| Code | Beschreibung |
+|------|-------------|
+| `3001` | Umfrage/Ressource wurde nicht gefunden |
+
+**4xxx - Business Logic**
+| Code | Beschreibung |
+|------|-------------|
+| `4000` | Business-Regel-Verstoß (z.B. Status-Transition ungültig) |
+
+**5xxx - Interner Serverfehler**
+| Code | Beschreibung |
+|------|-------------|
+| `5000` | Fehler beim Abrufen |
+| `5001` | Fehler beim Erstellen |
+| `5002` | Fehler beim Aktualisieren |
+| `5003` | Fehler beim Löschen |
+| `5004` | Fehler beim Speichern |
 
 ### HTTP-Status-Codes
 
 - `200 OK` - Erfolgreiche Abfrage
 - `201 Created` - Ressource erfolgreich erstellt
 - `204 No Content` - Erfolgreiche Löschung
-- `400 Bad Request` - Validierungsfehler
-- `401 Unauthorized` - Nicht authentifiziert
-- `403 Forbidden` - Keine Berechtigung
-- `404 Not Found` - Ressource nicht gefunden
-- `409 Conflict` - Konflikt bei Erstellung
-- `500 Internal Server Error` - Server-Fehler
+- `400 Bad Request` - Validierungsfehler (Code 2xxx)
+- `401 Unauthorized` - Nicht authentifiziert (Code 1001)
+- `403 Forbidden` - Keine Berechtigung (Code 1002, 1003)
+- `404 Not Found` - Ressource nicht gefunden (Code 3001)
+- `500 Internal Server Error` - Server-Fehler (Code 5xxx)
 
 ## Rate Limiting
 

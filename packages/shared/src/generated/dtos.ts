@@ -33,7 +33,7 @@ export interface CreateSurveyRequest {
 
 export interface ErrorRecord {
   error: string;
-  message?: string;
+  errorCode: number;
 }
 
 export interface GroupDto {
