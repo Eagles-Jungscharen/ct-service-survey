@@ -2,17 +2,112 @@
 // This file is generated from backend DTO and request models.
 // Do not edit manually.
 
+export type AvailabilityStatus = 'unknown' | 'yes' | 'no' | 'maybe';
+
 export type SurveyRequestStatus = 'draft' | 'inSurvey' | 'closed';
 
+export type SurveyStatus = 'draft' | 'active' | 'closed';
+
+export interface AssignmentDto {
+  surveyId: string;
+  serviceDateId: string;
+  userId: string;
+  userName: string;
+  assignedBy: string;
+  assignedAt: string;
+}
+
+export interface CreateServiceDateRequest {
+  date: string;
+  serviceType: string;
+  requiredPeople: number;
+  notes: string;
+}
+
+export interface CreateSurveyRequest {
+  title: string;
+  description: string;
+  status: SurveyStatus;
+  dates: CreateServiceDateRequest[];
+}
+
 export interface ErrorRecord {
-  message: string;
-  errorCode: number;
+  error: string;
+  message?: string;
 }
 
 export interface MeDto {
   userId: string;
   displayName: string;
   isAdmin: boolean;
+}
+
+export interface MyAssignmentDto {
+  surveyId: string;
+  surveyTitle: string;
+  serviceDateId: string;
+  date: string;
+  serviceTypeName: string;
+  assignedAt: string;
+}
+
+export interface ResponseDto {
+  surveyId: string;
+  serviceDateId: string;
+  userId: string;
+  userName: string;
+  availability: AvailabilityStatus;
+  remarks: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceDateAssignmentRequest {
+  serviceDateId: string;
+  userIds: string[];
+}
+
+export interface ServiceDateDto {
+  id: string;
+  surveyId: string;
+  date: string;
+  serviceType: string;
+  serviceTypeName: string;
+  requiredPeople: number;
+  notes: string;
+}
+
+export interface ServiceDateResponseRequest {
+  serviceDateId: string;
+  availability: AvailabilityStatus;
+  remarks: string;
+}
+
+export interface ServiceDto {
+  id: string;
+  name: string;
+}
+
+export interface SubmitAssignmentsRequest {
+  surveyId: string;
+  assignments: ServiceDateAssignmentRequest[];
+}
+
+export interface SubmitResponsesRequest {
+  surveyId: string;
+  responses: ServiceDateResponseRequest[];
+}
+
+export interface SurveyDto {
+  id: string;
+  creatorId: string;
+  creatorName: string;
+  title: string;
+  description: string;
+  status: SurveyStatus;
+  createdAt: string;
+  updatedAt: string;
+  dates: ServiceDateDto[];
 }
 
 export interface SurveyRequestDto {
@@ -29,5 +124,11 @@ export interface SurveyRequestEntryDto {
   eventId: string;
   date: string;
   eventName: string;
+}
+
+export interface UpdateSurveyRequest {
+  title: string;
+  description: string;
+  status: SurveyStatus;
 }
 

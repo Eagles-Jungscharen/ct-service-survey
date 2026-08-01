@@ -10,9 +10,26 @@ var exportedTypes = new[]
 {
     typeof(ErrorRecord),
     typeof(MeDto),
+    // Legacy DTOs (wird später entfernt)
     typeof(SurveyRequestDto),
     typeof(SurveyRequestStatus),
     typeof(SurveyRequestEntryDto),
+    // MVP DTOs
+    typeof(SurveyDto),
+    typeof(SurveyStatus),
+    typeof(ServiceDateDto),
+    typeof(CreateSurveyRequest),
+    typeof(UpdateSurveyRequest),
+    typeof(CreateServiceDateRequest),
+    typeof(ResponseDto),
+    typeof(AvailabilityStatus),
+    typeof(SubmitResponsesRequest),
+    typeof(ServiceDateResponseRequest),
+    typeof(AssignmentDto),
+    typeof(SubmitAssignmentsRequest),
+    typeof(ServiceDateAssignmentRequest),
+    typeof(MyAssignmentDto),
+    typeof(ServiceDto),
 };
 
 var builder = new StringBuilder();

@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EaglesJungscharen.Azure.ChurchToolIDPServices;
 using EaglesJungscharen.Azure.ChurchToolIDPServices.Extensions;
-using EaglesJungscharen.Azure.ChurchToolIDPServices.Middleware;
 using GuedesPlace.AzureTools.Configuration.Extensions;
 using GuedesPlace.AzureTools.Tables;
 using Azure.Storage.Blobs;
-using GuedesPlace.AzureTools.Tables;
+using EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
+using EaglesJungscharen.Azure.ServiceSurvey.Services;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -38,20 +38,23 @@ var host = new HostBuilder()
         var surveyTableService = new ExtendedAzureTableClientService(surveyStorageConnectionString);
         
         // Register tables (will be created if they don't exist)
-        // surveyTableService.CreateAndRegisterTableClient<SurveyEntity>("Surveys");
-        // surveyTableService.CreateAndRegisterTableClient<ServiceDateEntity>("ServiceDates");
-        // surveyTableService.CreateAndRegisterTableClient<ResponseEntity>("Responses");
-        // surveyTableService.CreateAndRegisterTableClient<AssignmentEntity>("Assignments");
-        // surveyTableService.CreateAndRegisterTableClient<ServiceEntity>("Services");
+        var surveysTable = surveyTableService.CreateAndRegisterTableClient<SurveyEntity>("Surveys");
+        var serviceDatesTable = surveyTableService.CreateAndRegisterTableClient<ServiceDateEntity>("ServiceDates");
+        var responsesTable = surveyTableService.CreateAndRegisterTableClient<ResponseEntity>("Responses");
+        var assignmentsTable = surveyTableService.CreateAndRegisterTableClient<AssignmentEntity>("Assignments");
+        var servicesTable = surveyTableService.CreateAndRegisterTableClient<ServiceEntity>("Services");
 
-        services.AddKeyedSingleton<ExtendedAzureTableClientService>("SurveyStorage", surveyTableService);
+        // Register individual TableClients as Keyed Services
+        services.AddKeyedSingleton("Surveys", surveysTable);
+        services.AddKeyedSingleton("ServiceDates", serviceDatesTable);
+        services.AddKeyedSingleton("Responses", responsesTable);
+        services.AddKeyedSingleton("Assignments", assignmentsTable);
+        services.AddKeyedSingleton("Services", servicesTable);
 
         // Register Services
-        // services.AddScoped<IMeService, MeService>();
-        // services.AddScoped<ISurveyService, SurveyService>();
-        // services.AddScoped<IResponseService, ResponseService>();
-        // services.AddScoped<IAssignmentService, AssignmentService>();
-        // services.AddScoped<IServiceService, ServiceService>();
+        services.AddScoped<ISurveyService, SurveyService>();
+        services.AddScoped<IResponseService, ResponseService>();
+        services.AddScoped<IAssignmentService, AssignmentService>();
     })
     .Build();
 
