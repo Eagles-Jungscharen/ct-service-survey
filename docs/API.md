@@ -45,21 +45,33 @@ Gibt Informationen über den aktuell eingeloggten Benutzer zurück.
 
 **Authentifizierung:** Erforderlich
 
+**Caching:** 5 Minuten serverseitig
+
 **Response:**
 ```json
 {
   "userId": "12345",
   "displayName": "Max Mustermann",
-  "email": "max@example.com",
   "isAdmin": true,
   "groups": [
     {
       "id": "1",
-      "name": "Teamleiter"
+      "title": "Teamleiter"
     }
   ]
 }
 ```
+
+**Felder:**
+- `userId` (string): ChurchTools Person-ID
+- `displayName` (string): Anzeigename des Benutzers
+- `isAdmin` (boolean): Admin-Status basierend auf Gruppenmitgliedschaft
+- `groups` (GroupDto[]): ChurchTools-Gruppen des Benutzers
+  - `id` (string): Gruppen-ID
+  - `title` (string): Gruppenname
+
+**Fehler:**
+- `401 Unauthorized` (Code 1001) - Nicht authentifiziert
 
 ---
 

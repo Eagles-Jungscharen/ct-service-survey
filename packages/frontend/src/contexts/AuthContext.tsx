@@ -1,43 +1,31 @@
 import { useAuth, AuthContextProps } from 'react-oidc-context'
+import { useMe } from '../hooks/useMe'
+import type { MeDto } from '@ct-service-survey/shared'
 
 // Re-export Auth-Context für einfachen Zugriff
 export const useAuthContext = (): AuthContextProps => {
   return useAuth()
 }
 
-// User-Info aus Claims extrahieren
-export interface UserInfo {
-  userId: string
-  displayName: string
-  isAdmin: boolean
-}
+// User-Info-Interface (kompatibel mit MeDto)
+export type UserInfo = MeDto
 
 export function useUserInfo(): UserInfo | null {
   const auth = useAuth()
+  const { data: meDto, isLoading, error } = useMe()
   
-  if (!auth.isAuthenticated || !auth.user) {
+  // Nicht authentifiziert
+  if (!auth.isAuthenticated) {
     return null
   }
 
-  // Claims aus Token extrahieren
-  const userId = auth.user.profile.sub || 
-                 auth.user.profile.person_id as string || 
-                 auth.user.profile.nameidentifier as string || ''
-  
-  const displayName = auth.user.profile.name as string || 
-                      auth.user.profile.preferred_username as string || 
-                      'Unbekannt'
-  
-  // Admin-Status aus Groups-Claim prüfen
-  const groups = auth.user.profile.groups as string[] || []
-  const adminGroupId = import.meta.env.VITE_CHURCHTOOL_ADMIN_GROUP_ID || ''
-  const isAdmin = adminGroupId ? groups.includes(adminGroupId) : false
-
-  return {
-    userId,
-    displayName,
-    isAdmin,
+  // Lädt noch oder Fehler aufgetreten
+  if (isLoading || error) {
+    return null
   }
+
+  // MeDto vom Backend zurückgeben
+  return meDto || null
 }
 
 // Hook für geschützte Routen
