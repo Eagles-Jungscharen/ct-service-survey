@@ -2,42 +2,37 @@ using Azure.Data.Tables;
 using Microsoft.Extensions.DependencyInjection;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
+using GuedesPlace.AzureTools.Tables;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 
 /// <summary>
 /// Service-Implementierung für Einteilungen
 /// </summary>
-public class AssignmentService : IAssignmentService
+public class AssignmentService ([FromKeyedServices("SurveyStorage")] ExtendedAzureTableClientService tableService) : IAssignmentService
 {
-    private readonly TableClient _assignmentsTable;
-    private readonly TableClient _surveysTable;
-    private readonly TableClient _serviceDatesTable;
+    private readonly TypedAzureTableClient<AssignmentEntity> _assignmentsTable = tableService.GetTypedTableClient<AssignmentEntity>();
+    private readonly TypedAzureTableClient<SurveyEntity> _surveysTable = tableService.GetTypedTableClient<SurveyEntity>();
+    private readonly TypedAzureTableClient<ServiceDateEntity> _serviceDatesTable = tableService.GetTypedTableClient<ServiceDateEntity>();
 
-    public AssignmentService(
-        [FromKeyedServices("Assignments")] TableClient assignmentsTable,
-        [FromKeyedServices("Surveys")] TableClient surveysTable,
-        [FromKeyedServices("ServiceDates")] TableClient serviceDatesTable)
-    {
-        _assignmentsTable = assignmentsTable;
-        _surveysTable = surveysTable;
-        _serviceDatesTable = serviceDatesTable;
-    }
-
+    
     public async Task<List<MyAssignmentDto>> GetMyAssignmentsAsync(string userId)
     {
         var assignments = new List<MyAssignmentDto>();
 
         // Alle Einteilungen des Users abrufen
         // RowKey Format: {serviceDateId}_{userId}
-        await foreach (var assignment in _assignmentsTable.QueryAsync<AssignmentEntity>(a => a.UserId == userId))
+        var query = $"UserId eq '{userId}'";
+        var assignementResponse = await _assignmentsTable.GetAllByQueryAsync(query);
+
+        foreach (var assignment in assignementResponse.Select(r => r.Entity))
         {
             // Survey-Details abrufen
             SurveyEntity? survey = null;
             try
             {
-                var surveyResponse = await _surveysTable.GetEntityAsync<SurveyEntity>("Survey", assignment.SurveyId);
-                survey = surveyResponse.Value;
+                var surveyResponse = await _surveysTable.GetByIdAsync( assignment.SurveyId, "Survey");
+                survey = surveyResponse?.Entity;
             }
             catch (global::Azure.RequestFailedException) { }
 
@@ -45,9 +40,8 @@ public class AssignmentService : IAssignmentService
             ServiceDateEntity? serviceDate = null;
             try
             {
-                var dateResponse = await _serviceDatesTable.GetEntityAsync<ServiceDateEntity>(
-                    assignment.SurveyId, assignment.ServiceDateId);
-                serviceDate = dateResponse.Value;
+                var dateResponse = await _serviceDatesTable.GetByIdAsync(assignment.ServiceDateId, assignment.SurveyId);
+                serviceDate = dateResponse?.Entity;
             }
             catch (global::Azure.RequestFailedException) { }
 
@@ -64,18 +58,13 @@ public class AssignmentService : IAssignmentService
             }
         }
 
-        return assignments.OrderBy(a => a.Date).ToList();
+        return [.. assignments.OrderBy(a => a.Date)];
     }
 
     public async Task<List<AssignmentDto>> GetAssignmentsForSurveyAsync(string surveyId)
     {
-        var assignments = new List<AssignmentDto>();
-
-        await foreach (var assignment in _assignmentsTable.QueryAsync<AssignmentEntity>(a => a.PartitionKey == surveyId))
-        {
-            assignments.Add(MapToDto(assignment));
-        }
-
+        var assignmentsResponse = await _assignmentsTable.GetAllAsync(surveyId);
+        var assignments = assignmentsResponse.Where(r => r.Entity != null).Select(r => MapToDto(r.Entity)).ToList();
         return assignments;
     }
 
@@ -100,8 +89,7 @@ public class AssignmentService : IAssignmentService
 
                 var entity = new AssignmentEntity
                 {
-                    PartitionKey = request.SurveyId,
-                    RowKey = rowKey,
+                    AssignmentId = rowKey,
                     SurveyId = request.SurveyId,
                     ServiceDateId = assignmentRequest.ServiceDateId,
                     UserId = userId,
@@ -110,7 +98,7 @@ public class AssignmentService : IAssignmentService
                     AssignedAt = now
                 };
 
-                await _assignmentsTable.AddEntityAsync(entity);
+                await _assignmentsTable.InsertOrMergeAsync(entity.AssignmentId, request.SurveyId, entity);
                 results.Add(MapToDto(entity));
             }
         }
@@ -122,20 +110,20 @@ public class AssignmentService : IAssignmentService
     {
         // Alle Einteilungen für diesen Termin löschen
         var deletedAny = false;
-
-        await foreach (var assignment in _assignmentsTable.QueryAsync<AssignmentEntity>(
-            a => a.PartitionKey == surveyId && a.ServiceDateId == serviceDateId))
+        var query = $"PartitionKey eq '{surveyId}' and ServiceDateId eq '{serviceDateId}'";
+        var assignmentsResponse = await _assignmentsTable.GetAllByQueryAsync(query);
+        foreach (var assignment in assignmentsResponse.Select(r => r.Entity))
         {
-            await _assignmentsTable.DeleteEntityAsync(surveyId, assignment.RowKey);
+            await _assignmentsTable.DeleteEntityAsync(assignment.AssignmentId, surveyId);
             deletedAny = true;
         }
-
         return deletedAny;
     }
 
     private static AssignmentDto MapToDto(AssignmentEntity entity)
     {
         return new AssignmentDto(
+            entity.AssignmentId,
             entity.SurveyId,
             entity.ServiceDateId,
             entity.UserId,

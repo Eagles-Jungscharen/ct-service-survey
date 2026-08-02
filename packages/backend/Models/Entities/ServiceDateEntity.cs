@@ -1,6 +1,3 @@
-using Azure;
-using Azure.Data.Tables;
-
 namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
 
 /// <summary>
@@ -8,15 +5,10 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
 /// PartitionKey: {surveyId}
 /// RowKey: {serviceDateId}
 /// </summary>
-public class ServiceDateEntity : ITableEntity
+public class ServiceDateEntity
 {
-    public string PartitionKey { get; set; } = string.Empty; // surveyId
-    public string RowKey { get; set; } = string.Empty; // serviceDateId
-    public DateTimeOffset? Timestamp { get; set; }
-    public ETag ETag { get; set; }
-
     // Business Properties
-    public string ServiceDateId { get; set; } = string.Empty;
+    public required string ServiceDateId { get; set; }
     public string SurveyId { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public string ServiceType { get; set; } = string.Empty; // ChurchTools Service-ID

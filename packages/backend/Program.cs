@@ -58,12 +58,8 @@ var host = new HostBuilder()
         var servicesTable = surveyTableService.CreateAndRegisterTableClient<ServiceEntity>("Services");
 
         // Register individual TableClients as Keyed Services
-        services.AddKeyedSingleton("Surveys", surveysTable);
-        services.AddKeyedSingleton("ServiceDates", serviceDatesTable);
-        services.AddKeyedSingleton("Responses", responsesTable);
-        services.AddKeyedSingleton("Assignments", assignmentsTable);
-        services.AddKeyedSingleton("Services", servicesTable);
-
+        services.AddKeyedSingleton("SurveyStorage", surveyTableService);
+        
         // Register Services
         services.AddScoped<ISurveyService, SurveyService>();
         services.AddScoped<IResponseService, ResponseService>();

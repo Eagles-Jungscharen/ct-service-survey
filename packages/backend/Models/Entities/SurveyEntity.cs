@@ -1,6 +1,3 @@
-using Azure;
-using Azure.Data.Tables;
-
 namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
 
 /// <summary>
@@ -8,13 +5,8 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
 /// PartitionKey: "Survey"
 /// RowKey: {surveyId}
 /// </summary>
-public class SurveyEntity : ITableEntity
+public class SurveyEntity
 {
-    public string PartitionKey { get; set; } = "Survey";
-    public string RowKey { get; set; } = string.Empty; // surveyId
-    public DateTimeOffset? Timestamp { get; set; }
-    public ETag ETag { get; set; }
-
     // Business Properties
     public string SurveyId { get; set; } = string.Empty;
     public string CreatorId { get; set; } = string.Empty;

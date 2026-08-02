@@ -1,34 +1,23 @@
-using Azure.Data.Tables;
 using Microsoft.Extensions.DependencyInjection;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
+using GuedesPlace.AzureTools.Tables;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 
 /// <summary>
 /// Service-Implementierung für Umfragen-Verwaltung
 /// </summary>
-public class SurveyService : ISurveyService
+public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTableClientService tableService) : ISurveyService
 {
-    private readonly TableClient _surveysTable;
-    private readonly TableClient _serviceDatesTable;
-
-    public SurveyService(
-        [FromKeyedServices("Surveys")] TableClient surveysTable,
-        [FromKeyedServices("ServiceDates")] TableClient serviceDatesTable)
-    {
-        _surveysTable = surveysTable;
-        _serviceDatesTable = serviceDatesTable;
-    }
+    private readonly TypedAzureTableClient<SurveyEntity> _surveysTable = tableService.GetTypedTableClient<SurveyEntity>();
+    private readonly TypedAzureTableClient<ServiceDateEntity> _serviceDatesTable = tableService.GetTypedTableClient<ServiceDateEntity>();
 
     public async Task<List<SurveyDto>> GetSurveysAsync(string userId, bool isAdmin, SurveyStatus? statusFilter = null)
     {
         // Alle Umfragen abrufen
-        var surveys = new List<SurveyEntity>();
-        await foreach (var survey in _surveysTable.QueryAsync<SurveyEntity>(s => s.PartitionKey == "Survey"))
-        {
-            surveys.Add(survey);
-        }
+        var surveysEntries = await _surveysTable.GetAllAsync("Survey");
+        var surveys = surveysEntries.Where(s => s.Entity != null).Select(s=>s.Entity).ToList();
 
         // Filtern nach Status und Berechtigung
         var filteredSurveys = surveys.Where(s =>
@@ -62,9 +51,9 @@ public class SurveyService : ISurveyService
     {
         try
         {
-            var survey = await _surveysTable.GetEntityAsync<SurveyEntity>("Survey", surveyId);
+            var survey = await _surveysTable.GetByIdAsync(surveyId, "Survey");
             var dates = await GetServiceDatesForSurveyAsync(surveyId);
-            return MapToDto(survey.Value, dates);
+            return MapToDto(survey.Entity, dates);
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {
@@ -79,7 +68,6 @@ public class SurveyService : ISurveyService
 
         var survey = new SurveyEntity
         {
-            RowKey = surveyId,
             SurveyId = surveyId,
             CreatorId = creatorId,
             CreatorName = creatorName,
@@ -90,7 +78,7 @@ public class SurveyService : ISurveyService
             UpdatedAt = now
         };
 
-        await _surveysTable.AddEntityAsync(survey);
+        await _surveysTable.InsertOrReplaceAsync(surveyId, "Survey", survey);
 
         // Termine erstellen
         var dates = new List<ServiceDateDto>();
@@ -109,8 +97,8 @@ public class SurveyService : ISurveyService
         SurveyEntity survey;
         try
         {
-            var response = await _surveysTable.GetEntityAsync<SurveyEntity>("Survey", surveyId);
-            survey = response.Value;
+            var response = await _surveysTable.GetByIdAsync(surveyId, "Survey");
+            survey = response.Entity;
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {
@@ -134,7 +122,7 @@ public class SurveyService : ISurveyService
         survey.Status = request.Status.ToString();
         survey.UpdatedAt = DateTime.UtcNow;
 
-        await _surveysTable.UpdateEntityAsync(survey, survey.ETag, TableUpdateMode.Replace);
+        await _surveysTable.InsertOrMergeAsync(surveyId, "Survey", survey);
 
         var dates = await GetServiceDatesForSurveyAsync(surveyId);
         return MapToDto(survey, dates);
@@ -146,8 +134,8 @@ public class SurveyService : ISurveyService
         SurveyEntity survey;
         try
         {
-            var response = await _surveysTable.GetEntityAsync<SurveyEntity>("Survey", surveyId);
-            survey = response.Value;
+            var response = await _surveysTable.GetByIdAsync(surveyId, "Survey");
+            survey = response.Entity;
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {
@@ -167,12 +155,13 @@ public class SurveyService : ISurveyService
         }
 
         // Umfrage löschen
-        await _surveysTable.DeleteEntityAsync("Survey", surveyId);
+        await _surveysTable.DeleteEntityAsync(surveyId, "Survey");
 
+        var allServiceDates = await GetServiceDatesForSurveyAsync(surveyId);
         // Termine löschen (Cascade)
-        await foreach (var date in _serviceDatesTable.QueryAsync<ServiceDateEntity>(d => d.PartitionKey == surveyId))
+        foreach (var date in allServiceDates)
         {
-            await _serviceDatesTable.DeleteEntityAsync(surveyId, date.RowKey);
+            await _serviceDatesTable.DeleteEntityAsync(date.Id, surveyId);
         }
 
         return true;
@@ -184,8 +173,8 @@ public class SurveyService : ISurveyService
         SurveyEntity survey;
         try
         {
-            var response = await _surveysTable.GetEntityAsync<SurveyEntity>("Survey", surveyId);
-            survey = response.Value;
+            var response = await _surveysTable.GetByIdAsync(surveyId, "Survey");
+            survey = response.Entity;
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {
@@ -213,8 +202,8 @@ public class SurveyService : ISurveyService
         SurveyEntity survey;
         try
         {
-            var response = await _surveysTable.GetEntityAsync<SurveyEntity>("Survey", surveyId);
-            survey = response.Value;
+            var response = await _surveysTable.GetByIdAsync(surveyId, "Survey");
+            survey = response.Entity;
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {
@@ -236,7 +225,7 @@ public class SurveyService : ISurveyService
         // Termin löschen
         try
         {
-            await _serviceDatesTable.DeleteEntityAsync(surveyId, serviceDateId);
+            await _serviceDatesTable.DeleteEntityAsync(serviceDateId, surveyId);
             return true;
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
@@ -249,10 +238,8 @@ public class SurveyService : ISurveyService
 
     private async Task<List<ServiceDateDto>> GetServiceDatesForSurveyAsync(string surveyId)
     {
-        var dates = new List<ServiceDateDto>();
-        await foreach (var date in _serviceDatesTable.QueryAsync<ServiceDateEntity>(d => d.PartitionKey == surveyId))
-        {
-            dates.Add(new ServiceDateDto(
+        var allServiceDates = await _serviceDatesTable.GetAllAsync(surveyId);
+        var dates = allServiceDates.Where(d => d.Entity != null).Select(d => d.Entity).Select(date=> new ServiceDateDto(
                 date.ServiceDateId,
                 date.SurveyId,
                 date.Date,
@@ -260,9 +247,8 @@ public class SurveyService : ISurveyService
                 date.ServiceTypeName,
                 date.RequiredPeople,
                 date.Notes
-            ));
-        }
-        return dates.OrderBy(d => d.Date).ToList();
+            )).ToList();
+        return [.. dates.OrderBy(d => d.Date)];
     }
 
     private async Task<ServiceDateDto> CreateServiceDateInternalAsync(string surveyId, CreateServiceDateRequest request)
@@ -275,8 +261,6 @@ public class SurveyService : ISurveyService
 
         var entity = new ServiceDateEntity
         {
-            PartitionKey = surveyId,
-            RowKey = serviceDateId,
             ServiceDateId = serviceDateId,
             SurveyId = surveyId,
             Date = request.Date,
@@ -286,7 +270,7 @@ public class SurveyService : ISurveyService
             Notes = request.Notes
         };
 
-        await _serviceDatesTable.AddEntityAsync(entity);
+        await _serviceDatesTable.InsertOrReplaceAsync(serviceDateId, surveyId,entity);
 
         return new ServiceDateDto(
             serviceDateId,

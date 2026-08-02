@@ -15,6 +15,7 @@ public enum AvailabilityStatus
 /// DTO für eine einzelne Rückmeldung (User × Termin)
 /// </summary>
 public record ResponseDto(
+    string ResponseId,
     string SurveyId,
     string ServiceDateId,
     string UserId,

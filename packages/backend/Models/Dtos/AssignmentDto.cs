@@ -4,6 +4,7 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 /// DTO für eine Einteilung (Admin → User zu Termin)
 /// </summary>
 public record AssignmentDto(
+    string AssignmentId,
     string SurveyId,
     string ServiceDateId,
     string UserId,
