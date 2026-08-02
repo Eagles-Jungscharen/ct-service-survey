@@ -64,6 +64,7 @@ var host = new HostBuilder()
         services.AddScoped<ISurveyService, SurveyService>();
         services.AddScoped<IResponseService, ResponseService>();
         services.AddScoped<IAssignmentService, AssignmentService>();
+        services.AddScoped<IMeService, MeService>();
     })
     .Build();
 
