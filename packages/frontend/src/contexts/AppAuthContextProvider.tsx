@@ -21,6 +21,7 @@ export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChil
       return;
     }
     setMeLoading(true);
+    console.log("Fetching user info with token:", token);
     meApi.getMe(token)
       .then(setMe)
       .catch(() => setMe(null))
