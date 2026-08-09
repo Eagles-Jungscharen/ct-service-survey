@@ -15,23 +15,16 @@ export class ApiError extends Error {
 // Base API client mit Auth-Header-Support
 class ApiClient {
   private baseUrl: string
-  private getToken: (() => string | null) | null = null
-
+  
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
   }
-
-  // Token-Getter für Auth registrieren
-  setTokenGetter(getter: () => string | null) {
-    this.getToken = getter
-  }
-
-  private getAuthHeader(): HeadersInit {
-    if (!this.getToken) {
+  
+  private getAuthHeader(token:string|undefined): HeadersInit {
+    if (!token) {
       return {}
     }
 
-    const token = this.getToken()
     if (!token) {
       return {}
     }
@@ -42,13 +35,14 @@ class ApiClient {
   }
 
   private async request<T>(
+    token: string|undefined,
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
     const headers = {
       'Content-Type': 'application/json',
-      ...this.getAuthHeader(),
+      ...this.getAuthHeader(token),
       ...options.headers,
     }
 
@@ -67,26 +61,26 @@ class ApiClient {
     return response.json()
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' })
+  async get<T>(endpoint: string, token: string | undefined): Promise<T> {
+    return this.request<T>(token, endpoint, { method: 'GET' })
   }
 
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
+  async post<T>(endpoint: string, token: string | undefined, data?: unknown): Promise<T> {
+    return this.request<T>(token, endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     })
   }
 
-  async put<T>(endpoint: string, data: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
+  async put<T>(endpoint: string, token: string | undefined, data: unknown): Promise<T> {
+    return this.request<T>(token, endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' })
+  async delete<T>(endpoint: string, token: string | undefined): Promise<T> {
+    return this.request<T>(token, endpoint, { method: 'DELETE' })
   }
 }
 

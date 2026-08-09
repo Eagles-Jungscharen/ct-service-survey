@@ -1,7 +1,6 @@
-import { Button, Menu, MenuTrigger, MenuPopover, MenuList, MenuItem, makeStyles, tokens } from '@fluentui/react-components'
+import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, makeStyles, tokens } from '@fluentui/react-components'
 import { PersonRegular, SignOutRegular } from '@fluentui/react-icons'
-import { useAuth } from 'react-oidc-context'
-import { useUserInfo } from '../contexts/AuthContext'
+import { useAppAuth } from '../hooks/useAppAuthContext'
 
 const useStyles = makeStyles({
   userButton: {
@@ -14,15 +13,14 @@ const useStyles = makeStyles({
 
 export function UserMenu() {
   const styles = useStyles()
-  const auth = useAuth()
-  const userInfo = useUserInfo()
-
+  const {isAuthenticated, displayName, isAdmin, login, logout} = useAppAuth() // This line seems unnecessary since the returned value is not used
+  
   // Nicht angemeldet - Login-Button
-  if (!auth.isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <Button
         appearance="primary"
-        onClick={() => auth.signinRedirect()}
+        onClick={login}
         className={styles.userButton}
       >
         Anmelden
@@ -40,14 +38,14 @@ export function UserMenu() {
           className={styles.userButton}
         >
           <span className={styles.userName}>
-            {userInfo?.displayName || 'Benutzer'}
-            {userInfo?.isAdmin && ' (Admin)'}
+            {displayName || 'Benutzer'}
+            {isAdmin && ' (Admin)'}
           </span>
         </Button>
       </MenuTrigger>
       <MenuPopover>
         <MenuList>
-          <MenuItem icon={<SignOutRegular />} onClick={() => auth.signoutRedirect()}>
+          <MenuItem icon={<SignOutRegular />} onClick={logout}>
             Abmelden
           </MenuItem>
         </MenuList>

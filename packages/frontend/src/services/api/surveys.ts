@@ -9,27 +9,27 @@ import type {
 
 export const surveysApi = {
   // Alle Umfragen abrufen
-  getAll: () => apiClient.get<SurveyDto[]>('/surveys'),
+  getAll: (token: string) => apiClient.get<SurveyDto[]>('/surveys', token),
 
   // Einzelne Umfrage abrufen
-  getById: (id: string) => apiClient.get<SurveyDto>(`/surveys/${id}`),
+  getById: (id: string, token: string) => apiClient.get<SurveyDto>(`/surveys/${id}`, token),
 
   // Umfrage erstellen
-  create: (data: CreateSurveyRequest) =>
-    apiClient.post<SurveyDto>('/surveys', data),
+  create: (data: CreateSurveyRequest, token: string) =>
+    apiClient.post<SurveyDto>('/surveys', token, data),
 
   // Umfrage aktualisieren
-  update: (id: string, data: UpdateSurveyRequest) =>
-    apiClient.put<SurveyDto>(`/surveys/${id}`, data),
+  update: (id: string, data: UpdateSurveyRequest, token: string) =>
+    apiClient.put<SurveyDto>(`/surveys/${id}`, token, data),
 
   // Umfrage löschen
-  delete: (id: string) => apiClient.delete<void>(`/surveys/${id}`),
+  delete: (id: string, token: string) => apiClient.delete<void>(`/surveys/${id}`, token),
 
   // ServiceDate hinzufügen
-  addServiceDate: (surveyId: string, data: CreateServiceDateRequest) =>
-    apiClient.post<ServiceDateDto>(`/surveys/${surveyId}/servicedates`, data),
+  addServiceDate: (surveyId: string, data: CreateServiceDateRequest, token: string) =>
+    apiClient.post<ServiceDateDto>(`/surveys/${surveyId}/servicedates`, token, data),
 
   // ServiceDate löschen
-  deleteServiceDate: (surveyId: string, serviceDateId: string) =>
-    apiClient.delete<void>(`/surveys/${surveyId}/servicedates/${serviceDateId}`),
+  deleteServiceDate: (surveyId: string, serviceDateId: string, token: string) =>
+    apiClient.delete<void>(`/surveys/${surveyId}/servicedates/${serviceDateId}`, token),
 }

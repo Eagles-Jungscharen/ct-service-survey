@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from 'react-oidc-context'
 import { meApi } from '../services/api'
+import { useAppAuth } from './useAppAuthContext'
 
 // Query Key
 const meKeys = {
@@ -9,11 +9,11 @@ const meKeys = {
 
 // Benutzerinformationen vom Backend abrufen
 export function useMe() {
-  const auth = useAuth()
+  const auth = useAppAuth();
 
   return useQuery({
     queryKey: meKeys.me,
-    queryFn: meApi.getMe,
+    queryFn: () => meApi.getMe(auth.token +""),
     // Nur abrufen wenn authentifiziert
     enabled: auth.isAuthenticated,
     // 5 Minuten Cache (synchron mit Backend-Cache)

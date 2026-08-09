@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "react-oidc-context";
 import { AppAuthContext, AppAuthContextValue } from "./AppAuthContext";
 import { MeDto } from "@ct-service-survey/shared";
+import { meApi } from "../services/api";
 
 export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChildren> = (
   props: React.PropsWithChildren,
@@ -20,10 +21,10 @@ export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChil
       return;
     }
     setMeLoading(true);
-    //fetchMe(token)
-    //  .then(setMe)
-    //  .catch(() => setMe(null))
-    //  .finally(() => setMeLoading(false));
+    meApi.getMe(token)
+      .then(setMe)
+      .catch(() => setMe(null))
+      .finally(() => setMeLoading(false));
   }, [oidc.isAuthenticated, token]);
 
   const value: AppAuthContextValue = {

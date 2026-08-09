@@ -1,8 +1,5 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { makeStyles, tokens, Spinner } from '@fluentui/react-components'
-import { useAuth } from 'react-oidc-context'
-import { useEffect } from 'react'
-import { apiClient } from '../services/api'
 import { SurveysListPage } from '../pages/SurveysListPage'
 import { SurveyDetailPage } from '../pages/SurveyDetailPage'
 import { SurveyResponsePage } from '../pages/SurveyResponsePage'
@@ -15,6 +12,7 @@ import { CallbackPage } from '../pages/CallbackPage'
 import { HomePage } from '../pages/HomePage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { UserMenu } from './UserMenu'
+import { useAppAuth } from '../hooks/useAppAuthContext'
 
 const useStyles = makeStyles({
   app: {
@@ -60,31 +58,11 @@ const useStyles = makeStyles({
   },
 })
 
-export function AppContent() {
+export const AppContent:React.FunctionComponent = () => {
   const styles = useStyles()
-  const auth = useAuth()
+  const auth = useAppAuth()
 
-  console.log('Auth state changed:', {
-    isAuthenticated: auth.isAuthenticated,
-    isLoading: auth.isLoading,
-    user: auth.user,
-    error: auth.error,
-  });
-
-  // Token-Getter für API-Client registrieren
-  useEffect(() => {
-    if (!auth.user) {
-      console.log('No user available, setting token getter to return null.');
-      return;
-    }
-    console.log('Token getter registieren');
-    apiClient.setTokenGetter(() => {
-      console.log('Getting user:', auth.user);
-      console.log('Getting access token for API client:', auth.user?.access_token);
-      return auth.user?.access_token || null
-    })
-  }, [auth.user])
-
+  
   // Auth-Loading-State
   if (auth.isLoading) {
     return (

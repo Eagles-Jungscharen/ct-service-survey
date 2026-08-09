@@ -14,7 +14,7 @@ const queryClient = new QueryClient({
   },
 })
 
-function App() {
+export const App:React.FunctionComponent = () => {
   return (
     <FluentProvider theme={webLightTheme}>
       <AuthProvider {...oidcConfig}>

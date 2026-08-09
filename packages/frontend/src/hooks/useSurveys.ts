@@ -5,6 +5,7 @@ import type {
   UpdateSurveyRequest,
   CreateServiceDateRequest,
 } from '@ct-service-survey/shared'
+import { useAppAuth } from './useAppAuthContext';
 
 // Query Keys
 const surveyKeys = {
@@ -14,27 +15,30 @@ const surveyKeys = {
 
 // Alle Umfragen abrufen
 export function useSurveys() {
+  const auth = useAppAuth();
   return useQuery({
     queryKey: surveyKeys.all,
-    queryFn: surveysApi.getAll,
+    queryFn: () => surveysApi.getAll(auth.token!),
   })
 }
 
 // Einzelne Umfrage abrufen
 export function useSurvey(id: string) {
+  const auth = useAppAuth();
   return useQuery({
     queryKey: surveyKeys.detail(id),
-    queryFn: () => surveysApi.getById(id),
+    queryFn: () => surveysApi.getById(id, auth.token!),
     enabled: !!id,
   })
 }
 
 // Umfrage erstellen
 export function useCreateSurvey() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+  const auth = useAppAuth();
   
   return useMutation({
-    mutationFn: (data: CreateSurveyRequest) => surveysApi.create(data),
+    mutationFn: (data: CreateSurveyRequest) => surveysApi.create(data, auth.token!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: surveyKeys.all })
     },
@@ -43,11 +47,12 @@ export function useCreateSurvey() {
 
 // Umfrage aktualisieren
 export function useUpdateSurvey() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+  const auth = useAppAuth();
   
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateSurveyRequest }) =>
-      surveysApi.update(id, data),
+      surveysApi.update(id, data, auth.token!),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: surveyKeys.all })
       queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.id) })
@@ -57,10 +62,11 @@ export function useUpdateSurvey() {
 
 // Umfrage löschen
 export function useDeleteSurvey() {
-  const queryClient = useQueryClient()
-  
+  const queryClient = useQueryClient();
+  const auth = useAppAuth();
+
   return useMutation({
-    mutationFn: (id: string) => surveysApi.delete(id),
+    mutationFn: (id: string) => surveysApi.delete(id, auth.token!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: surveyKeys.all })
     },
@@ -69,11 +75,12 @@ export function useDeleteSurvey() {
 
 // ServiceDate hinzufügen
 export function useAddServiceDate() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+  const auth = useAppAuth();
   
   return useMutation({
     mutationFn: ({ surveyId, data }: { surveyId: string; data: CreateServiceDateRequest }) =>
-      surveysApi.addServiceDate(surveyId, data),
+      surveysApi.addServiceDate(surveyId, data, auth.token!),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
@@ -82,11 +89,12 @@ export function useAddServiceDate() {
 
 // ServiceDate löschen
 export function useDeleteServiceDate() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+  const auth = useAppAuth();
   
   return useMutation({
     mutationFn: ({ surveyId, serviceDateId }: { surveyId: string; serviceDateId: string }) =>
-      surveysApi.deleteServiceDate(surveyId, serviceDateId),
+      surveysApi.deleteServiceDate(surveyId, serviceDateId, auth.token!),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
