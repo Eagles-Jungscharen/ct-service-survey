@@ -1,5 +1,7 @@
 import { useAuth } from 'react-oidc-context'
 import { Spinner, Text, makeStyles, tokens } from '@fluentui/react-components'
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const useStyles = makeStyles({
   container: {
@@ -12,9 +14,16 @@ const useStyles = makeStyles({
   },
 })
 
-export function CallbackPage() {
-  const styles = useStyles()
-  const auth = useAuth()
+export const CallbackPage: React.FunctionComponent = () => {
+  const styles = useStyles();
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!auth.isLoading && !auth.error) {
+      navigate('/', { replace: true });
+    }
+  }, [auth.isLoading, auth.error, navigate]);
 
   // Automatisches Handling durch react-oidc-context
   return (
