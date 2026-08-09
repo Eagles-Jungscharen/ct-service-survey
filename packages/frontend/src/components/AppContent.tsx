@@ -5,8 +5,7 @@ import { SurveyDetailPage } from '../pages/SurveyDetailPage'
 import { SurveyResponsePage } from '../pages/SurveyResponsePage'
 import { MyAssignmentsPage } from '../pages/MyAssignmentsPage'
 import { AdminSurveyManagePage } from '../pages/AdminSurveyManagePage'
-import { CreateSurveyPage } from '../pages/CreateSurveyPage'
-import { AddServiceDatePage } from '../pages/AddServiceDatePage'
+import { CreateSurveyWizard } from '../pages/CreateSurveyWizard'
 import { AssignmentsPage } from '../pages/AssignmentsPage'
 import { CallbackPage } from '../pages/CallbackPage'
 import { HomePage } from '../pages/HomePage'
@@ -146,7 +145,7 @@ export const AppContent:React.FunctionComponent = () => {
               path="/admin/surveys/new" 
               element={
                 <ProtectedRoute requireAdmin>
-                  <CreateSurveyPage />
+                  <CreateSurveyWizard />
                 </ProtectedRoute>
               } 
             />
@@ -155,14 +154,6 @@ export const AppContent:React.FunctionComponent = () => {
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminSurveyManagePage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/surveys/:id/add-servicedate" 
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AddServiceDatePage />
                 </ProtectedRoute>
               } 
             />

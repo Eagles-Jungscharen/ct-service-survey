@@ -9,5 +9,4 @@ public record ServiceDateDto(
     DateTime Date,
     string ServiceType,
     string ServiceTypeName,
-    int RequiredPeople,
     string Notes);

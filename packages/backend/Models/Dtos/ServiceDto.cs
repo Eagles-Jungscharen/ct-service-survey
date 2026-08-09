@@ -4,5 +4,5 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 /// DTO für ChurchTools-Dienst-Typen
 /// </summary>
 public record ServiceDto(
-    string Id,
+    int Id,
     string Name);

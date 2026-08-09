@@ -180,7 +180,6 @@ export function AssignmentsPage() {
                 <div>
                   <Text>{serviceDate.serviceTypeName}</Text>
                   <Text size={200} style={{ display: 'block', marginTop: '4px' }}>
-                    Benötigt: {serviceDate.requiredPeople} Personen | 
                     Eingeteilt: {assignedUsers.size} Personen
                   </Text>
                 </div>

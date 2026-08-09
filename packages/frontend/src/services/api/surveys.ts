@@ -5,6 +5,8 @@ import type {
   UpdateSurveyRequest,
   ServiceDateDto,
   CreateServiceDateRequest,
+  FetchEventsRequest,
+  FetchEventsResponse,
 } from '@ct-service-survey/shared'
 
 export const surveysApi = {
@@ -32,4 +34,8 @@ export const surveysApi = {
   // ServiceDate löschen
   deleteServiceDate: (surveyId: string, serviceDateId: string, token: string) =>
     apiClient.delete<void>(`/surveys/${surveyId}/servicedates/${serviceDateId}`, token),
+
+  // Events aus ChurchTools abrufen (für Survey-Wizard)
+  fetchEvents: (data: FetchEventsRequest, token: string) =>
+    apiClient.post<FetchEventsResponse>('/surveys/fetch-events', token, data),
 }

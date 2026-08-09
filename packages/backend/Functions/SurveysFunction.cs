@@ -14,15 +14,18 @@ public class SurveysFunction
 {
     private readonly ILogger<SurveysFunction> _logger;
     private readonly ISurveyService _surveyService;
+    private readonly IChurchToolsService _churchToolsService;
     private readonly IConfiguration _configuration;
 
     public SurveysFunction(
         ILogger<SurveysFunction> logger,
         ISurveyService surveyService,
+        IChurchToolsService churchToolsService,
         IConfiguration configuration)
     {
         _logger = logger;
         _surveyService = surveyService;
+        _churchToolsService = churchToolsService;
         _configuration = configuration;
     }
 
@@ -257,6 +260,62 @@ public class SurveysFunction
         {
             _logger.LogError(ex, "Fehler beim Löschen der Umfrage {SurveyId}.", surveyId);
             return new ObjectResult(new ErrorRecord("Fehler beim Löschen der Umfrage.", 5003))
+            {
+                StatusCode = 500
+            };
+        }
+    }
+
+    /// <summary>
+    /// POST /api/surveys/fetch-events - Holt Events aus ChurchTools für einen Zeitraum und Service
+    /// Nur für Admins zugänglich
+    /// </summary>
+    [Function("FetchEvents")]
+    public async Task<IActionResult> FetchEvents(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "surveys/fetch-events")] HttpRequest req)
+    {
+        try
+        {
+            var userInfo = GetUserFromClaims(req.HttpContext.User);
+            if (userInfo == null)
+            {
+                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
+            }
+
+            var (userId, displayName, isAdmin) = userInfo.Value;
+
+            if (!isAdmin)
+            {
+                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Abrufen von Events.", 1003))
+                {
+                    StatusCode = 403
+                };
+            }
+
+            var request = await JsonSerializer.DeserializeAsync<FetchEventsRequest>(req.Body);
+            if (request == null)
+            {
+                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
+            }
+
+            // Validierung
+            if (request.StartDate >= request.EndDate)
+            {
+                return new BadRequestObjectResult(new ErrorRecord("Start-Datum muss vor End-Datum liegen.", 2004));
+            }
+
+            var events = await _churchToolsService.FetchEventsAsync(
+                request.StartDate,
+                request.EndDate,
+                request.ServiceId);
+
+            var response = new FetchEventsResponse(events);
+            return new OkObjectResult(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Events aus ChurchTools.");
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Events aus ChurchTools.", 5000))
             {
                 StatusCode = 500
             };

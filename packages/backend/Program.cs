@@ -68,6 +68,7 @@ services.AddScoped<ISurveyService, SurveyService>();
 services.AddScoped<IResponseService, ResponseService>();
 services.AddScoped<IAssignmentService, AssignmentService>();
 services.AddScoped<IMeService, MeService>();
+services.AddScoped<IChurchToolsService, ChurchToolsService>();
 builder.UseMiddleware<JwtValidationMiddleware>();
 builder.UseMiddleware<ChurchToolReferenceMiddleware>();
 

@@ -4,6 +4,7 @@ import type {
   CreateSurveyRequest,
   UpdateSurveyRequest,
   CreateServiceDateRequest,
+  FetchEventsRequest,
 } from '@ct-service-survey/shared'
 import { useAppAuth } from './useAppAuthContext';
 
@@ -98,5 +99,14 @@ export function useDeleteServiceDate() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
+  })
+}
+
+// Events aus ChurchTools abrufen (für Survey-Wizard)
+export function useFetchChurchToolsEvents() {
+  const auth = useAppAuth();
+  
+  return useMutation({
+    mutationFn: (data: FetchEventsRequest) => surveysApi.fetchEvents(data, auth.token!),
   })
 }

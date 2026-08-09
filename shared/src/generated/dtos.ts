@@ -18,12 +18,6 @@ export interface AssignmentDto {
   assignedAt: string;
 }
 
-export interface ChurchToolsEventDto {
-  id: number;
-  name: string;
-  startDate: string;
-}
-
 export interface CreateServiceDateRequest {
   date: string;
   serviceType: string;
@@ -40,16 +34,6 @@ export interface CreateSurveyRequest {
 export interface ErrorRecord {
   error: string;
   errorCode: number;
-}
-
-export interface FetchEventsRequest {
-  startDate: string;
-  endDate: string;
-  serviceId: number;
-}
-
-export interface FetchEventsResponse {
-  events: ChurchToolsEventDto[];
 }
 
 export interface GroupDto {

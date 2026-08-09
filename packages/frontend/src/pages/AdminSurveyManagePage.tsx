@@ -213,12 +213,6 @@ export function AdminSurveyManagePage() {
         {survey.dates.length === 0 && (
           <Text>Noch keine Dienste definiert.</Text>
         )}
-
-        <Link to={`/admin/surveys/${id}/add-servicedate`}>
-          <Button style={{ marginTop: tokens.spacingVerticalM }}>
-            Dienst hinzufügen
-          </Button>
-        </Link>
       </div>
 
       <div className={styles.actions}>

@@ -245,7 +245,6 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
                 date.Date,
                 date.ServiceType,
                 date.ServiceTypeName,
-                date.RequiredPeople,
                 date.Notes
             )).ToList();
         return [.. dates.OrderBy(d => d.Date)];
@@ -266,7 +265,6 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             Date = request.Date,
             ServiceType = request.ServiceType,
             ServiceTypeName = serviceTypeName,
-            RequiredPeople = request.RequiredPeople,
             Notes = request.Notes
         };
 
@@ -278,7 +276,6 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             request.Date,
             request.ServiceType,
             serviceTypeName,
-            request.RequiredPeople,
             request.Notes
         );
     }

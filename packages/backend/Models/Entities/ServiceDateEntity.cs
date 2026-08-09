@@ -13,6 +13,5 @@ public class ServiceDateEntity
     public DateTime Date { get; set; }
     public string ServiceType { get; set; } = string.Empty; // ChurchTools Service-ID
     public string ServiceTypeName { get; set; } = string.Empty;
-    public int RequiredPeople { get; set; }
     public string Notes { get; set; } = string.Empty;
 }

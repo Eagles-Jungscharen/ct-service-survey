@@ -31,6 +31,10 @@ var exportedTypes = new[]
     typeof(ServiceDateAssignmentRequest),
     typeof(MyAssignmentDto),
     typeof(ServiceDto),
+    // ChurchTools Integration DTOs
+    typeof(ChurchToolsEventDto),
+    typeof(FetchEventsRequest),
+    typeof(FetchEventsResponse),
 };
 
 var builder = new StringBuilder();

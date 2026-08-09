@@ -47,5 +47,4 @@ public record UpdateSurveyRequest(
 public record CreateServiceDateRequest(
     DateTime Date,
     string ServiceType,
-    int RequiredPeople,
     string Notes);
