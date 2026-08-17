@@ -86,7 +86,7 @@ export function SurveysListPage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Umfragen</h1>
-        <Link to="/surveys/new">
+        <Link to="/admin/surveys/new">
           <Button appearance="primary" icon={<Add24Regular />}>
             Neue Umfrage
           </Button>

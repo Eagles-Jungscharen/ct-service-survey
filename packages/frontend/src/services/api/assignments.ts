@@ -7,13 +7,13 @@ import type {
 
 export const assignmentsApi = {
   // Eigene Einteilungen abrufen
-  getMyAssignments: (token: string) => apiClient.get<MyAssignmentDto[]>('/assignments/me', token),
+  getMyAssignments: (token: string) => apiClient.get<MyAssignmentDto[]>('/api/assignments/me', token),
 
   // Alle Einteilungen für eine Umfrage abrufen (Admin)
   getAssignmentsForSurvey: (surveyId: string, token: string) =>
-    apiClient.get<AssignmentDto[]>(`/surveys/${surveyId}/assignments`, token),
+    apiClient.get<AssignmentDto[]>(`/api/surveys/${surveyId}/assignments`, token),
 
   // Einteilungen vornehmen (Admin)
   submit: (data: SubmitAssignmentsRequest, token: string) =>
-    apiClient.post<void>('/assignments', token, data),
+    apiClient.post<void>('/api/assignments', token, data),
 }

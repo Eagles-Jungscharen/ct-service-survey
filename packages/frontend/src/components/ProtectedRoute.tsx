@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react'
 import { Spinner, Text, makeStyles, tokens } from '@fluentui/react-components'
 import { useAuth } from 'react-oidc-context'
+import { useAppAuth } from '../hooks/useAppAuthContext'
 
 const useStyles = makeStyles({
   container: {
@@ -19,18 +20,18 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const styles = useStyles()
-  const auth = useAuth()
-
+  const styles = useStyles();
+  const {isLoading,isAuthenticated, isAdmin, login} = useAppAuth() // This line seems unnecessary since the returned value is not used
+  
   useEffect(() => {
     // Wenn nicht authentifiziert, redirect zu Login
-    if (!auth.isLoading && !auth.isAuthenticated) {
-      auth.signinRedirect()
+    if (!isLoading && !isAuthenticated) {
+      login()
     }
-  }, [auth.isLoading, auth.isAuthenticated, auth])
+  }, [isLoading, isAuthenticated, login])
 
   // Während Auth lädt
-  if (auth.isLoading) {
+  if (isLoading) {
     return (
       <div className={styles.container}>
         <Spinner label="Authentifizierung wird geprüft..." />
@@ -39,7 +40,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   }
 
   // Nicht authentifiziert
-  if (!auth.isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <div className={styles.container}>
         <Spinner label="Weiterleitung zum Login..." />
@@ -48,11 +49,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   }
 
   // Admin-Check wenn erforderlich
-  if (requireAdmin && auth.user) {
-    const groups = (auth.user.profile.groups as string[]) || []
-    const adminGroupId = import.meta.env.VITE_CHURCHTOOL_ADMIN_GROUP_ID || ''
-    const isAdmin = adminGroupId ? groups.includes(adminGroupId) : false
-
+  if (requireAdmin) {
     if (!isAdmin) {
       return (
         <div className={styles.container}>

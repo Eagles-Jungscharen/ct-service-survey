@@ -11,31 +11,31 @@ import type {
 
 export const surveysApi = {
   // Alle Umfragen abrufen
-  getAll: (token: string) => apiClient.get<SurveyDto[]>('/surveys', token),
+  getAll: (token: string) => apiClient.get<SurveyDto[]>('/api/surveys', token),
 
   // Einzelne Umfrage abrufen
-  getById: (id: string, token: string) => apiClient.get<SurveyDto>(`/surveys/${id}`, token),
+  getById: (id: string, token: string) => apiClient.get<SurveyDto>(`/api/surveys/${id}`, token),
 
   // Umfrage erstellen
   create: (data: CreateSurveyRequest, token: string) =>
-    apiClient.post<SurveyDto>('/surveys', token, data),
+    apiClient.post<SurveyDto>('/api/surveys', token, data),
 
   // Umfrage aktualisieren
   update: (id: string, data: UpdateSurveyRequest, token: string) =>
-    apiClient.put<SurveyDto>(`/surveys/${id}`, token, data),
+    apiClient.put<SurveyDto>(`/api/surveys/${id}`, token, data),
 
   // Umfrage löschen
-  delete: (id: string, token: string) => apiClient.delete<void>(`/surveys/${id}`, token),
+  delete: (id: string, token: string) => apiClient.delete<void>(`/api/surveys/${id}`, token),
 
   // ServiceDate hinzufügen
   addServiceDate: (surveyId: string, data: CreateServiceDateRequest, token: string) =>
-    apiClient.post<ServiceDateDto>(`/surveys/${surveyId}/servicedates`, token, data),
+    apiClient.post<ServiceDateDto>(`/api/surveys/${surveyId}/servicedates`, token, data),
 
   // ServiceDate löschen
   deleteServiceDate: (surveyId: string, serviceDateId: string, token: string) =>
-    apiClient.delete<void>(`/surveys/${surveyId}/servicedates/${serviceDateId}`, token),
+    apiClient.delete<void>(`/api/surveys/${surveyId}/servicedates/${serviceDateId}`, token),
 
   // Events aus ChurchTools abrufen (für Survey-Wizard)
   fetchEvents: (data: FetchEventsRequest, token: string) =>
-    apiClient.post<FetchEventsResponse>('/surveys/fetch-events', token, data),
+    apiClient.post<FetchEventsResponse>('/api/surveys/fetch-events', token, data),
 }
