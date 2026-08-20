@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 
 /// <summary>
@@ -5,8 +7,11 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 /// </summary>
 public enum SurveyStatus
 {
+    [JsonStringEnumMemberName("draft")]
     Draft,
+    [JsonStringEnumMemberName("active")]
     Active,
+    [JsonStringEnumMemberName("closed")]
     Closed
 }
 
@@ -19,6 +24,7 @@ public record SurveyDto(
     string CreatorName,
     string Title,
     string Description,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     SurveyStatus Status,
     DateTime CreatedAt,
     DateTime UpdatedAt,
@@ -30,6 +36,7 @@ public record SurveyDto(
 public record CreateSurveyRequest(
     string Title,
     string Description,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     SurveyStatus Status,
     List<CreateServiceDateRequest> Dates);
 
@@ -39,6 +46,7 @@ public record CreateSurveyRequest(
 public record UpdateSurveyRequest(
     string Title,
     string Description,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     SurveyStatus Status);
 
 /// <summary>

@@ -9,6 +9,8 @@ using EaglesJungscharen.Azure.ServiceSurvey.Services;
 using EaglesJungscharen.Azure.ServiceSurvey.Models;
 using EaglesJungscharen.Azure.ChurchToolIDPServices.Middleware;
 using Microsoft.Azure.Functions.Worker.Builder;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 

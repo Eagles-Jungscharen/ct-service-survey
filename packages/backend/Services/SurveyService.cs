@@ -262,7 +262,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         {
             ServiceDateId = serviceDateId,
             SurveyId = surveyId,
-            Date = request.Date,
+            Date = request.Date.ToUniversalTime(),
             ServiceType = request.ServiceType,
             ServiceTypeName = serviceTypeName,
             Notes = request.Notes
