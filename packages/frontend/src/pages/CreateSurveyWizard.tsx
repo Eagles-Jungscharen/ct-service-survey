@@ -11,7 +11,7 @@ import {
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
 import { useCreateSurvey, useFetchChurchToolsEvents } from '../hooks/useSurveys'
 import { useServices } from '../hooks/useServices'
-import type { SurveyStatus, ChurchToolsEventDto } from '@ct-service-survey/shared'
+import type { ChurchToolsEventDto } from '@ct-service-survey/shared'
 import { Step1Form } from '../components/createSurveyWizard/Step1Form'
 import { useCreateSurveyFormHandlers } from '../hooks/useCreateSurveyFormHandlers'
 
@@ -59,11 +59,6 @@ const useStyles = makeStyles({
     marginTop: tokens.spacingVerticalL,
   },
 })
-
-interface SelectedEvent {
-  event: ChurchToolsEventDto
-  notes: string
-}
 
 export const CreateSurveyWizard:React.FunctionComponent = () => {
   const styles = useStyles();
