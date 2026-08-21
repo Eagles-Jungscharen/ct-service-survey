@@ -1,21 +1,19 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Button,
   Input,
-  Textarea,
   makeStyles,
   tokens,
   Text,
-  Spinner,
   Checkbox,
-  Dropdown,
-  Option,
 } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
 import { useCreateSurvey, useFetchChurchToolsEvents } from '../hooks/useSurveys'
 import { useServices } from '../hooks/useServices'
 import type { SurveyStatus, ChurchToolsEventDto } from '@ct-service-survey/shared'
+import { Step1Form } from '../components/createSurveyWizard/Step1Form'
+import { useCreateSurveyFormHandlers } from '../hooks/useCreateSurveyFormHandlers'
 
 const useStyles = makeStyles({
   container: {
@@ -62,50 +60,41 @@ const useStyles = makeStyles({
   },
 })
 
-const statusLabels: Record<SurveyStatus, string> = {
-  draft: 'Entwurf',
-  active: 'Aktiv',
-  closed: 'Geschlossen',
-}
-
 interface SelectedEvent {
   event: ChurchToolsEventDto
   notes: string
 }
 
-export function CreateSurveyWizard() {
-  const styles = useStyles()
-  const navigate = useNavigate()
-  const createSurveyMutation = useCreateSurvey()
+export const CreateSurveyWizard:React.FunctionComponent = () => {
+  const styles = useStyles();
+  const navigate = useNavigate();
+  const createSurveyMutation = useCreateSurvey();
   const fetchEventsMutation = useFetchChurchToolsEvents()
-  const { data: services, isLoading: servicesLoading } = useServices()
+  const { data: services, isLoading: servicesLoading } = useServices();
 
   // Wizard State
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1);
 
-  // Step 1: Survey-Grunddaten + Zeitraum + Dienst
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [status, setStatus] = useState<SurveyStatus>('draft')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null)
+  const { createSurveyFormPayload, handleTextChange, handleStatusChange, handleAddSelectedEvent, handleRemoveSelectedEvent, handleServiceIdChange, handleUpdateSelectedEventNotes } = useCreateSurveyFormHandlers();
+
+  const selectedEvents = useMemo(() => {
+    return new Map(createSurveyFormPayload.selectedEvents.map((e) => [e.event.id, e]));
+  }, [createSurveyFormPayload.selectedEvents]);
 
   // Step 2: Event-Auswahl
   const [fetchedEvents, setFetchedEvents] = useState<ChurchToolsEventDto[]>([])
-  const [selectedEvents, setSelectedEvents] = useState<Map<number, SelectedEvent>>(new Map())
-
+  
   // Schritt 1 → Schritt 2: Events aus ChurchTools holen
   const handleFetchEvents = async () => {
-    if (!selectedServiceId || !startDate || !endDate) {
+    if (!createSurveyFormPayload.serviceId || !createSurveyFormPayload.startDate || !createSurveyFormPayload.endDate) {
       return
     }
 
     try {
       const response = await fetchEventsMutation.mutateAsync({
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
-        serviceId: selectedServiceId,
+        startDate: new Date(createSurveyFormPayload.startDate).toISOString(),
+        endDate: new Date(createSurveyFormPayload.endDate).toISOString(),
+        serviceId: createSurveyFormPayload.serviceId,
       })
 
       setFetchedEvents(response.events)
@@ -117,37 +106,30 @@ export function CreateSurveyWizard() {
 
   // Event auswählen/abwählen
   const toggleEvent = (event: ChurchToolsEventDto) => {
-    const newSelected = new Map(selectedEvents)
-    if (newSelected.has(event.id)) {
-      newSelected.delete(event.id)
+    if (selectedEvents.has(event.id)) {
+      handleRemoveSelectedEvent(event.id)
     } else {
-      newSelected.set(event.id, { event, notes: '' })
+      handleAddSelectedEvent({ event, notes: '' })
     }
-    setSelectedEvents(newSelected)
   }
 
   // Notes für Event aktualisieren
   const updateEventNotes = (eventId: number, notes: string) => {
-    const newSelected = new Map(selectedEvents)
-    const existing = newSelected.get(eventId)
-    if (existing) {
-      newSelected.set(eventId, { ...existing, notes })
-    }
-    setSelectedEvents(newSelected)
+    handleUpdateSelectedEventNotes(eventId, notes);
   }
 
   // Umfrage erstellen (Submit)
   const handleSubmit = async () => {
     const dates = Array.from(selectedEvents.values()).map((sel) => ({
       date: sel.event.startDate,
-      serviceType: String(selectedServiceId),
+      serviceType: String(createSurveyFormPayload.serviceId),
       notes: sel.notes,
     }))
 
     const result = await createSurveyMutation.mutateAsync({
-      title,
-      description,
-      status,
+      title: createSurveyFormPayload.title,
+      description: createSurveyFormPayload.description,
+      status: createSurveyFormPayload.status,
       dates,
     })
 
@@ -155,7 +137,7 @@ export function CreateSurveyWizard() {
   }
 
   const selectedServiceName =
-    services?.find((s) => s.id === selectedServiceId)?.name || 'Unbekannt'
+    services?.find((s) => s.id === createSurveyFormPayload.serviceId)?.name || 'Unbekannt'
 
   return (
     <div className={styles.container}>
@@ -176,133 +158,28 @@ export function CreateSurveyWizard() {
       </div>
 
       {step === 1 && (
-        <>
-          <div className={styles.formGroup}>
-            <label htmlFor="title">Titel der Umfrage</label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(_, data) => setTitle(data.value)}
-              required
-              placeholder="z.B. Lobpreis-Dienste Januar 2026"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="description">Beschreibung (optional)</label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(_, data) => setDescription(data.value)}
-              resize="vertical"
-              placeholder="Weitere Informationen zur Umfrage..."
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="status">Status</label>
-            <select
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as SurveyStatus)}
-              style={{
-                padding: '8px',
-                borderRadius: tokens.borderRadiusMedium,
-                border: `1px solid ${tokens.colorNeutralStroke1}`,
-                width: '100%',
-              }}
-            >
-              {(Object.keys(statusLabels) as SurveyStatus[]).map((s) => (
-                <option key={s} value={s}>
-                  {statusLabels[s]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.dateGroup}>
-            <div className={styles.formGroup}>
-              <label htmlFor="startDate">Start-Datum</label>
-              <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(_, data) => setStartDate(data.value)}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="endDate">End-Datum</label>
-              <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(_, data) => setEndDate(data.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="service">Dienst</label>
-            {servicesLoading ? (
-              <Spinner size="small" label="Lade Dienste..." />
-            ) : (
-              <Dropdown
-                placeholder="Dienst auswählen..."
-                value={selectedServiceName}
-                selectedOptions={selectedServiceId ? [String(selectedServiceId)] : []}
-                onOptionSelect={(_, data) =>
-                  setSelectedServiceId(data.optionValue ? Number(data.optionValue) : null)
-                }
-              >
-                {services?.map((service) => (
-                  <Option key={service.id} value={String(service.id)}>
-                    {service.name}
-                  </Option>
-                ))}
-              </Dropdown>
-            )}
-          </div>
-
-          <div className={styles.actions}>
-            <Button
-              appearance="primary"
-              onClick={handleFetchEvents}
-              disabled={
-                !title ||
-                !startDate ||
-                !endDate ||
-                !selectedServiceId ||
-                fetchEventsMutation.isPending
-              }
-            >
-              {fetchEventsMutation.isPending ? 'Lädt Events...' : 'Weiter'}
-            </Button>
-            <Link to="/admin/surveys">
-              <Button>Abbrechen</Button>
-            </Link>
-          </div>
-
-          {fetchEventsMutation.isError && (
-            <Text className={styles.errorText}>
-              Fehler beim Abrufen der Events: {fetchEventsMutation.error.message}
-            </Text>
-          )}
-        </>
+        <Step1Form
+          createSurveyFormPayload={createSurveyFormPayload}
+          services={services}
+          servicesLoading={servicesLoading}
+          fetchEventsMutation={fetchEventsMutation}
+          onFetchEvents={handleFetchEvents}
+          handleTextChange={handleTextChange}
+          handleStatusChange={handleStatusChange}
+          handleServiceIdChange={handleServiceIdChange}
+        />
       )}
 
       {step === 2 && (
         <>
           <Text>
-            <strong>Titel:</strong> {title}
+            <strong>Titel:</strong> {createSurveyFormPayload.title}
           </Text>
           <Text>
             <strong>Dienst:</strong> {selectedServiceName}
           </Text>
           <Text>
-            <strong>Zeitraum:</strong> {startDate} bis {endDate}
+            <strong>Zeitraum:</strong> {createSurveyFormPayload.startDate} bis {createSurveyFormPayload.endDate}
           </Text>
 
           {fetchedEvents.length === 0 ? (
