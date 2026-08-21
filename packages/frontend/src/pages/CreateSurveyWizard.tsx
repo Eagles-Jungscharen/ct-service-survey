@@ -1,13 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import {
-  Button,
-  Input,
-  makeStyles,
-  tokens,
-  Text,
-  Checkbox,
-} from '@fluentui/react-components'
+import { Button, Input, makeStyles, tokens, Text, Checkbox, } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
 import { useCreateSurvey, useFetchChurchToolsEvents } from '../hooks/useSurveys'
 import { useServices } from '../hooks/useServices'
@@ -60,7 +53,7 @@ const useStyles = makeStyles({
   },
 })
 
-export const CreateSurveyWizard:React.FunctionComponent = () => {
+export const CreateSurveyWizard: React.FunctionComponent = () => {
   const styles = useStyles();
   const navigate = useNavigate();
   const createSurveyMutation = useCreateSurvey();
@@ -78,7 +71,7 @@ export const CreateSurveyWizard:React.FunctionComponent = () => {
 
   // Step 2: Event-Auswahl
   const [fetchedEvents, setFetchedEvents] = useState<ChurchToolsEventDto[]>([])
-  
+
   // Schritt 1 → Schritt 2: Events aus ChurchTools holen
   const handleFetchEvents = async () => {
     if (!createSurveyFormPayload.serviceId || !createSurveyFormPayload.startDate || !createSurveyFormPayload.endDate) {
