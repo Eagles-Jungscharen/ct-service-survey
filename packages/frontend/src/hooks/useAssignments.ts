@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { assignmentsApi } from '../services/api'
 import type { SubmitAssignmentsRequest } from '@ct-service-survey/shared'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
 import { useAppAuth } from './useAppAuthContext';
+import { assignmentsApi } from '../services/api'
 
 // Query Keys
 const assignmentKeys = {
@@ -35,9 +36,9 @@ export function useSubmitAssignments() {
   return useMutation({
     mutationFn: (data: SubmitAssignmentsRequest) => assignmentsApi.submit(data, auth.token!),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.myAssignments })
-      queryClient.invalidateQueries({ 
-        queryKey: assignmentKeys.surveyAssignments(variables.surveyId) 
+      void queryClient.invalidateQueries({ queryKey: assignmentKeys.myAssignments })
+      void queryClient.invalidateQueries({
+        queryKey: assignmentKeys.surveyAssignments(variables.surveyId)
       })
     },
   })

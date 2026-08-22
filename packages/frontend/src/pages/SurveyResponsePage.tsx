@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import type { ServiceDateResponseRequest, AvailabilityStatus } from '@ct-service-survey/shared'
 import {
   Button,
   Spinner,
@@ -13,9 +12,11 @@ import {
   CardHeader,
 } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
-import { useSurvey } from '../hooks/useSurveys'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+
 import { useMyResponses, useSubmitResponses } from '../hooks/useResponses'
-import type { ServiceDateResponseRequest, AvailabilityStatus } from '@ct-service-survey/shared'
+import { useSurvey } from '../hooks/useSurveys'
 
 const useStyles = makeStyles({
   container: {
@@ -74,6 +75,7 @@ export function SurveyResponsePage() {
           remarks: response.remarks,
         })
       })
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResponses(responseMap)
     }
   }, [existingResponses])
@@ -81,7 +83,7 @@ export function SurveyResponsePage() {
   const handleAvailabilityChange = (serviceDateId: string, availability: AvailabilityStatus) => {
     setResponses((prev) => {
       const newMap = new Map(prev)
-      const existing = newMap.get(serviceDateId) || { serviceDateId, availability: 'unknown' as AvailabilityStatus, remarks: '' }
+      const existing = newMap.get(serviceDateId) ?? { serviceDateId, availability: 'unknown' as AvailabilityStatus, remarks: '' }
       newMap.set(serviceDateId, { ...existing, availability })
       return newMap
     })
@@ -90,22 +92,24 @@ export function SurveyResponsePage() {
   const handleRemarksChange = (serviceDateId: string, remarks: string) => {
     setResponses((prev) => {
       const newMap = new Map(prev)
-      const existing = newMap.get(serviceDateId) || { serviceDateId, availability: 'unknown' as AvailabilityStatus, remarks: '' }
+      const existing = newMap.get(serviceDateId) ?? { serviceDateId, availability: 'unknown' as AvailabilityStatus, remarks: '' }
       newMap.set(serviceDateId, { ...existing, remarks })
       return newMap
     })
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!id) return
 
-    const responseArray = Array.from(responses.values())
-    await submitMutation.mutateAsync({
-      surveyId: id,
-      responses: responseArray,
-    })
-
-    navigate(`/surveys/${id}`)
+    const responseArray = Array.from(responses.values());
+    const doSubmit = async () => {
+      await submitMutation.mutateAsync({
+        surveyId: id,
+        responses: responseArray,
+      });
+      await navigate(`/surveys/${id}`)
+    }
+    void doSubmit();
   }
 
   if (surveyLoading || responsesLoading) {
@@ -139,7 +143,7 @@ export function SurveyResponsePage() {
 
       {survey.dates.map((serviceDate) => {
         const response = responses.get(serviceDate.id)
-        
+
         return (
           <Card key={serviceDate.id} className={styles.serviceDateCard}>
             <CardHeader
@@ -164,10 +168,10 @@ export function SurveyResponsePage() {
                 </div>
               }
             />
-            
+
             <div className={styles.formGroup}>
               <RadioGroup
-                value={response?.availability || 'unknown'}
+                value={response?.availability ?? 'unknown'}
                 onChange={(_, data) =>
                   handleAvailabilityChange(serviceDate.id, data.value as AvailabilityStatus)
                 }
@@ -183,7 +187,7 @@ export function SurveyResponsePage() {
 
               <Textarea
                 placeholder="Optionale Bemerkung"
-                value={response?.remarks || ''}
+                value={response?.remarks ?? ''}
                 onChange={(_, data) =>
                   handleRemarksChange(serviceDate.id, data.value)
                 }

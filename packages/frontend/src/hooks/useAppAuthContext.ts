@@ -1,4 +1,5 @@
 import { useContext } from 'react';
+
 import { AppAuthContextValue, AppAuthContext } from '../contexts/AppAuthContext';
 
 export const useAppAuth = (): AppAuthContextValue => {

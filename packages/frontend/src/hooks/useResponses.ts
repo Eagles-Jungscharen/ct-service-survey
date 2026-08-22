@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { responsesApi } from '../services/api'
 import type { SubmitResponsesRequest } from '@ct-service-survey/shared'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
 import { useAppAuth } from './useAppAuthContext';
+import { responsesApi } from '../services/api'
 
 // Query Keys
 const responseKeys = {
@@ -33,15 +34,15 @@ export function useAllResponses(surveyId: string) {
 export function useSubmitResponses() {
   const queryClient = useQueryClient()
   const auth = useAppAuth();
-  
+
   return useMutation({
-    mutationFn: (data: SubmitResponsesRequest) => responsesApi.submit(data, auth.token! ),
+    mutationFn: (data: SubmitResponsesRequest) => responsesApi.submit(data, auth.token!),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: responseKeys.myResponses(variables.surveyId) 
+      void queryClient.invalidateQueries({
+        queryKey: responseKeys.myResponses(variables.surveyId)
       })
-      queryClient.invalidateQueries({ 
-        queryKey: responseKeys.allResponses(variables.surveyId) 
+      void queryClient.invalidateQueries({
+        queryKey: responseKeys.allResponses(variables.surveyId)
       })
     },
   })

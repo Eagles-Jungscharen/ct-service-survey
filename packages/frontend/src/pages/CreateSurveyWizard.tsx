@@ -3,6 +3,7 @@ import { Button, makeStyles, Text, tokens } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+
 import { Step1Form } from '../components/createSurveyWizard/Step1Form'
 import { Step2Form } from '../components/createSurveyWizard/Step2Form'
 import { useCreateSurveyFormHandlers } from '../hooks/useCreateSurveyFormHandlers'
@@ -65,23 +66,26 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
   const [fetchedEvents, setFetchedEvents] = useState<ChurchToolsEventDto[]>([])
 
   // Schritt 1 → Schritt 2: Events aus ChurchTools holen
-  const handleFetchEvents = async () => {
+  const handleFetchEvents = () => {
     if (!createSurveyFormPayload.serviceId || !createSurveyFormPayload.startDate || !createSurveyFormPayload.endDate) {
       return
     }
 
-    try {
-      const response = await fetchEventsMutation.mutateAsync({
-        startDate: new Date(createSurveyFormPayload.startDate).toISOString(),
-        endDate: new Date(createSurveyFormPayload.endDate).toISOString(),
-        serviceId: createSurveyFormPayload.serviceId,
-      })
+    const doFetch = async () => {
+      try {
+        const response = await fetchEventsMutation.mutateAsync({
+          startDate: new Date(createSurveyFormPayload.startDate).toISOString(),
+          endDate: new Date(createSurveyFormPayload.endDate).toISOString(),
+          serviceId: createSurveyFormPayload.serviceId!,
+        })
 
-      setFetchedEvents(response.events)
-      setStep(2)
-    } catch (error) {
-      // Fehler wird durch mutation.isError angezeigt
+        setFetchedEvents(response.events)
+        setStep(2)
+      } catch (error) {
+        // Fehler wird durch mutation.isError angezeigt
+      }
     }
+    void doFetch();
   }
 
   // Event auswählen/abwählen
@@ -99,25 +103,29 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
   }
 
   // Umfrage erstellen (Submit)
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const dates = Array.from(selectedEvents.values()).map((sel) => ({
       date: sel.event.startDate,
       serviceType: String(createSurveyFormPayload.serviceId),
       notes: sel.notes,
     }))
 
-    const result = await createSurveyMutation.mutateAsync({
-      title: createSurveyFormPayload.title,
-      description: createSurveyFormPayload.description,
-      status: createSurveyFormPayload.status,
-      dates,
-    })
+    const doSubmit = async () => {
 
-    navigate(`/admin/surveys/${result.id}`)
+      const result = await createSurveyMutation.mutateAsync({
+        title: createSurveyFormPayload.title,
+        description: createSurveyFormPayload.description,
+        status: createSurveyFormPayload.status,
+        dates,
+      })
+
+      await navigate(`/admin/surveys/${result.id}`)
+    }
+    void doSubmit();
   }
 
   const selectedServiceName =
-    services?.find((s) => s.id === createSurveyFormPayload.serviceId)?.name || 'Unbekannt'
+    services?.find((s) => s.id === createSurveyFormPayload.serviceId)?.name ?? 'Unbekannt'
 
   return (
     <div className={styles.container}>
@@ -151,7 +159,7 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
       )}
 
       {step === 2 && (
-         <Step2Form
+        <Step2Form
           createSurveyFormPayload={createSurveyFormPayload}
           selectedServiceName={selectedServiceName}
           fetchedEvents={fetchedEvents}
@@ -167,4 +175,3 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
     </div>
   )
 }
-        

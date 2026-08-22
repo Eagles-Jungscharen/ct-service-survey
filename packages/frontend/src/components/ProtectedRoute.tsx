@@ -1,7 +1,7 @@
-import { ReactNode, useEffect } from 'react'
-import { Spinner, Text, makeStyles, tokens } from '@fluentui/react-components'
-import { useAuth } from 'react-oidc-context'
-import { useAppAuth } from '../hooks/useAppAuthContext'
+import { Spinner, Text, makeStyles, tokens } from '@fluentui/react-components';
+import { ReactNode, useEffect } from 'react';
+
+import { useAppAuth } from '../hooks/useAppAuthContext';
 
 const useStyles = makeStyles({
   container: {
@@ -19,10 +19,11 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean
 }
 
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
+export const ProtectedRoute: React.FunctionComponent<ProtectedRouteProps> = (props: ProtectedRouteProps) => {
+  const { children, requireAdmin = false } = props;
   const styles = useStyles();
-  const {isLoading,isAuthenticated, isAdmin, login} = useAppAuth() // This line seems unnecessary since the returned value is not used
-  
+  const { isLoading, isAuthenticated, isAdmin, login } = useAppAuth();
+
   useEffect(() => {
     // Wenn nicht authentifiziert, redirect zu Login
     if (!isLoading && !isAuthenticated) {

@@ -1,5 +1,6 @@
-import { apiClient } from './client'
 import type { ServiceDto } from '@ct-service-survey/shared'
+
+import { apiClient } from './client'
 
 export const servicesApi = {
   // Alle verfügbaren Services (Dienste) aus ChurchTools abrufen

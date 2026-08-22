@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import type { SurveyDto } from '@ct-service-survey/shared'
 import {
   Card,
   CardHeader,
@@ -9,8 +9,11 @@ import {
   tokens,
 } from '@fluentui/react-components'
 import { Add24Regular } from '@fluentui/react-icons'
+import * as React from 'react'
+import { Link } from 'react-router-dom'
+
 import { useSurveys } from '../hooks/useSurveys'
-import type { SurveyDto } from '@ct-service-survey/shared'
+
 
 const useStyles = makeStyles({
   container: {
@@ -108,13 +111,12 @@ export function SurveysListPage() {
                     <Text size={300}>{survey.description}</Text>
                     <div style={{ marginTop: '8px' }}>
                       <span
-                        className={`${styles.statusBadge} ${
-                          survey.status === 'draft'
-                            ? styles.statusDraft
-                            : survey.status === 'active'
+                        className={`${styles.statusBadge} ${survey.status === 'draft'
+                          ? styles.statusDraft
+                          : survey.status === 'active'
                             ? styles.statusActive
                             : styles.statusClosed
-                        }`}
+                          }`}
                       >
                         {statusLabels[survey.status]}
                       </span>

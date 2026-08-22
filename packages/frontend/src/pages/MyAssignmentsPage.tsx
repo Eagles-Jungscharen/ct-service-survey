@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import {
   Card,
   CardHeader,
@@ -7,6 +6,8 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
+import { Link } from 'react-router-dom'
+
 import { useMyAssignments } from '../hooks/useAssignments'
 
 const useStyles = makeStyles({

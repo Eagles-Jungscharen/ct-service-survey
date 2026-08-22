@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import type { ServiceDateAssignmentRequest } from '@ct-service-survey/shared'
 import {
   Button,
   Spinner,
@@ -11,10 +10,13 @@ import {
   Checkbox,
 } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
-import { useSurvey } from '../hooks/useSurveys'
-import { useAllResponses } from '../hooks/useResponses'
+import { useEffect, useState } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+
 import { useSurveyAssignments, useSubmitAssignments } from '../hooks/useAssignments'
-import type { ServiceDateAssignmentRequest } from '@ct-service-survey/shared'
+import { useAllResponses } from '../hooks/useResponses'
+import { useSurvey } from '../hooks/useSurveys'
+
 
 const useStyles = makeStyles({
   container: {
@@ -75,30 +77,31 @@ export function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Map<string, Set<string>>>(new Map())
 
   // Bestehende Einteilungen in State laden
-  useState(() => {
+  useEffect(() => {
     if (existingAssignments) {
       const assignmentMap = new Map<string, Set<string>>()
       existingAssignments.forEach((assignment) => {
-        const existing = assignmentMap.get(assignment.serviceDateId) || new Set<string>()
+        const existing = assignmentMap.get(assignment.serviceDateId) ?? new Set<string>()
         existing.add(assignment.userId)
         assignmentMap.set(assignment.serviceDateId, existing)
       })
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAssignments(assignmentMap)
     }
-  })
+  }, [existingAssignments])
 
   const handleToggleAssignment = (serviceDateId: string, userId: string) => {
     setAssignments((prev) => {
       const newMap = new Map(prev)
-      const existing = newMap.get(serviceDateId) || new Set<string>()
+      const existing = newMap.get(serviceDateId) ?? new Set<string>()
       const newSet = new Set(existing)
-      
+
       if (newSet.has(userId)) {
         newSet.delete(userId)
       } else {
         newSet.add(userId)
       }
-      
+
       newMap.set(serviceDateId, newSet)
       return newMap
     })
@@ -120,7 +123,7 @@ export function AssignmentsPage() {
       assignments: assignmentRequests,
     })
 
-    navigate('/admin/surveys')
+    void navigate('/admin/surveys')
   }
 
   if (surveyLoading || responsesLoading) {
@@ -142,7 +145,7 @@ export function AssignmentsPage() {
   // Antworten nach ServiceDate gruppieren
   const responsesByServiceDate = new Map<string, typeof responses>()
   responses?.forEach((response) => {
-    const existing = responsesByServiceDate.get(response.serviceDateId) || []
+    const existing = responsesByServiceDate.get(response.serviceDateId) ?? []
     responsesByServiceDate.set(response.serviceDateId, [...existing, response])
   })
 
@@ -160,8 +163,8 @@ export function AssignmentsPage() {
       </div>
 
       {survey.dates.map((serviceDate) => {
-        const serviceDateResponses = responsesByServiceDate.get(serviceDate.id) || []
-        const assignedUsers = assignments.get(serviceDate.id) || new Set<string>()
+        const serviceDateResponses = responsesByServiceDate.get(serviceDate.id) ?? []
+        const assignedUsers = assignments.get(serviceDate.id) ?? new Set<string>()
 
         return (
           <Card key={serviceDate.id} className={styles.serviceDateCard}>
@@ -195,21 +198,20 @@ export function AssignmentsPage() {
                   />
                   <Text>{response.userName}</Text>
                   <span
-                    className={`${styles.availabilityBadge} ${
-                      response.availability === 'yes'
-                        ? styles.availabilityYes
-                        : response.availability === 'maybe'
+                    className={`${styles.availabilityBadge} ${response.availability === 'yes'
+                      ? styles.availabilityYes
+                      : response.availability === 'maybe'
                         ? styles.availabilityMaybe
                         : ''
-                    }`}
+                      }`}
                   >
                     {response.availability === 'yes'
                       ? 'Kann'
                       : response.availability === 'no'
-                      ? 'Kann nicht'
-                      : response.availability === 'maybe'
-                      ? 'Vielleicht'
-                      : 'Unbekannt'}
+                        ? 'Kann nicht'
+                        : response.availability === 'maybe'
+                          ? 'Vielleicht'
+                          : 'Unbekannt'}
                   </span>
                   {response.remarks && (
                     <Text size={200} style={{ fontStyle: 'italic' }}>
@@ -229,7 +231,7 @@ export function AssignmentsPage() {
       <div className={styles.actions}>
         <Button
           appearance="primary"
-          onClick={handleSave}
+          onClick={() => void handleSave()}
           disabled={submitMutation.isPending}
         >
           {submitMutation.isPending ? 'Wird gespeichert...' : 'Einteilungen speichern'}

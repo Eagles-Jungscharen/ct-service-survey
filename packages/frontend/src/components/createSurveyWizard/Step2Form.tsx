@@ -1,5 +1,6 @@
-import { Button, Input, makeStyles, tokens, Text, Checkbox } from '@fluentui/react-components';
 import type { ChurchToolsEventDto } from '@ct-service-survey/shared';
+import { Button, Input, makeStyles, tokens, Text, Checkbox } from '@fluentui/react-components';
+
 import { CreateSurveyFormPayload } from '../../models/CreateSurveyFormPayload';
 
 const useStyles = makeStyles({
@@ -100,7 +101,7 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = ({
                   </td>
                   <td style={{ padding: '8px' }}>
                     <Input
-                      value={selectedEvents.get(event.id)?.notes || ''}
+                      value={selectedEvents.get(event.id)?.notes ?? ''}
                       onChange={(_, data) => updateEventNotes(event.id, data.value)}
                       disabled={!selectedEvents.has(event.id)}
                       placeholder="Optionale Notizen..."

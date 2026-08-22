@@ -1,13 +1,6 @@
+import type { CreateServiceDateRequest, CreateSurveyRequest, FetchEventsRequest, FetchEventsResponse, ServiceDateDto, SurveyDto, UpdateSurveyRequest, } from '@ct-service-survey/shared'
+
 import { apiClient } from './client'
-import type {
-  SurveyDto,
-  CreateSurveyRequest,
-  UpdateSurveyRequest,
-  ServiceDateDto,
-  CreateServiceDateRequest,
-  FetchEventsRequest,
-  FetchEventsResponse,
-} from '@ct-service-survey/shared'
 
 export const surveysApi = {
   // Alle Umfragen abrufen

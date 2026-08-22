@@ -1,5 +1,6 @@
-import { apiClient } from './client'
 import type { ResponseDto, SubmitResponsesRequest } from '@ct-service-survey/shared'
+
+import { apiClient } from './client'
 
 export const responsesApi = {
   // Eigene Antworten für eine Umfrage abrufen

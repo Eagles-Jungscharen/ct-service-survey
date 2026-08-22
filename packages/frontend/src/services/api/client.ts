@@ -1,11 +1,12 @@
-import { API_BASE_URL } from '../../config/api'
 import type { ErrorRecord } from '@ct-service-survey/shared'
+
+import { API_BASE_URL } from '../../config/api'
 
 // Custom Error-Klasse für API-Fehler mit Fehlercode
 export class ApiError extends Error {
   public readonly code: number
 
-  constructor(message: string, code: number = 0) {
+  constructor(message: string, code = 0) {
     super(message)
     this.name = 'ApiError'
     this.code = code
@@ -15,12 +16,12 @@ export class ApiError extends Error {
 // Base API client mit Auth-Header-Support
 class ApiClient {
   private baseUrl: string
-  
+
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
   }
-  
-  private getAuthHeader(token:string|undefined): HeadersInit {
+
+  private getAuthHeader(token: string | undefined): HeadersInit {
     if (!token) {
       return {}
     }
@@ -34,11 +35,7 @@ class ApiClient {
     }
   }
 
-  private async request<T>(
-    token: string|undefined,
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(token: string | undefined, endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
     const headers = {
       'Content-Type': 'application/json',
@@ -53,12 +50,12 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({})) as Partial<ErrorRecord>
-      const errorMessage = errorData.error || 'Ein Fehler ist aufgetreten'
-      const errorCode = errorData.errorCode || 0
+      const errorMessage = errorData.error ?? 'Ein Fehler ist aufgetreten'
+      const errorCode = errorData.errorCode ?? 0
       throw new ApiError(errorMessage, errorCode)
     }
 
-    return response.json()
+    return await response.json() as T;
   }
 
   async get<T>(endpoint: string, token: string | undefined): Promise<T> {

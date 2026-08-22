@@ -1,5 +1,6 @@
 import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, makeStyles, tokens } from '@fluentui/react-components'
 import { PersonRegular, SignOutRegular } from '@fluentui/react-icons'
+
 import { useAppAuth } from '../hooks/useAppAuthContext'
 
 const useStyles = makeStyles({
@@ -11,10 +12,10 @@ const useStyles = makeStyles({
   },
 })
 
-export function UserMenu() {
-  const styles = useStyles()
-  const {isAuthenticated, displayName, isAdmin, login, logout} = useAppAuth() // This line seems unnecessary since the returned value is not used
-  
+export const UserMenu: React.FunctionComponent = () => {
+  const styles = useStyles();
+  const { isAuthenticated, displayName, isAdmin, login, logout } = useAppAuth();
+
   // Nicht angemeldet - Login-Button
   if (!isAuthenticated) {
     return (

@@ -1,20 +1,9 @@
-import { useEffect } from 'react'
+import { Button, makeStyles, tokens, Text, Card, CardHeader, } from '@fluentui/react-components'
+import { CheckmarkCircle24Regular, People24Regular, CalendarLtr24Regular, PersonAvailable24Regular, } from '@fluentui/react-icons'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from 'react-oidc-context'
-import {
-  Button,
-  makeStyles,
-  tokens,
-  Text,
-  Card,
-  CardHeader,
-} from '@fluentui/react-components'
-import {
-  CheckmarkCircle24Regular,
-  People24Regular,
-  CalendarLtr24Regular,
-  PersonAvailable24Regular,
-} from '@fluentui/react-icons'
+
+import { useAppAuth } from '../hooks/useAppAuthContext'
 
 const useStyles = makeStyles({
   container: {
@@ -81,19 +70,19 @@ const useStyles = makeStyles({
 
 export function HomePage() {
   const styles = useStyles()
-  const auth = useAuth()
+  const auth = useAppAuth()
   const navigate = useNavigate()
 
   // Wenn authentifiziert, redirect zu /surveys
-  useEffect(() => {
+  React.useEffect(() => {
     if (auth.isAuthenticated) {
-      navigate('/surveys')
+      void navigate('/surveys')
     }
   }, [auth.isAuthenticated, navigate])
 
-  const handleLogin = () => {
-    auth.signinRedirect()
-  }
+  const handleLogin = React.useCallback(() => {
+    auth.login()
+  }, [auth])
 
   return (
     <div className={styles.container}>

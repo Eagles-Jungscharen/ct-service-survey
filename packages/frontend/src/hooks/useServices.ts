@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { servicesApi } from '../services/api'
+
 import { useAppAuth } from './useAppAuthContext'
+import { servicesApi } from '../services/api'
 
 // Query Keys
 const servicesKeys = {
@@ -10,7 +11,7 @@ const servicesKeys = {
 // Alle verfügbaren Services (Dienste) aus ChurchTools abrufen
 export function useServices() {
   const auth = useAppAuth()
-  
+
   return useQuery({
     queryKey: servicesKeys.all,
     queryFn: () => servicesApi.getAll(auth.token!),

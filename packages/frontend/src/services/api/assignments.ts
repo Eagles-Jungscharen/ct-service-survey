@@ -1,9 +1,10 @@
-import { apiClient } from './client'
 import type {
   MyAssignmentDto,
   AssignmentDto,
   SubmitAssignmentsRequest,
 } from '@ct-service-survey/shared'
+
+import { apiClient } from './client'
 
 export const assignmentsApi = {
   // Eigene Einteilungen abrufen

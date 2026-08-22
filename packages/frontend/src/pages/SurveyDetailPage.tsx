@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom'
+import type { SurveyDto } from '@ct-service-survey/shared'
 import {
   Button,
   Spinner,
@@ -9,9 +9,10 @@ import {
   CardHeader,
 } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
-import { useSurvey } from '../hooks/useSurveys'
+import { useParams, Link } from 'react-router-dom'
+
 import { useMyResponses } from '../hooks/useResponses'
-import type { SurveyDto } from '@ct-service-survey/shared'
+import { useSurvey } from '../hooks/useSurveys'
 
 const useStyles = makeStyles({
   container: {
@@ -71,7 +72,7 @@ export function SurveyDetailPage() {
 
   // ResponseDto hat eine Map von serviceDateId zu AvailabilityStatus
   const responseMap = new Map(
-    myResponses?.map((r) => [r.serviceDateId, r.availability]) || []
+    myResponses?.map((r) => [r.serviceDateId, r.availability]) ?? []
   )
 
   return (
@@ -96,7 +97,7 @@ export function SurveyDetailPage() {
         <h2>Dienste</h2>
         {survey.dates.map((serviceDate) => {
           const myResponse = responseMap.get(serviceDate.id)
-          
+
           return (
             <Card key={serviceDate.id} className={styles.serviceDateCard}>
               <CardHeader

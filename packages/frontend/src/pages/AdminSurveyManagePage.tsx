@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import type { SurveyStatus } from '@ct-service-survey/shared'
 import {
   Button,
   Spinner,
@@ -20,8 +19,11 @@ import {
   MoreVertical24Regular,
   Delete24Regular,
 } from '@fluentui/react-icons'
+import { useState } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+
 import { useSurvey, useUpdateSurvey, useDeleteServiceDate } from '../hooks/useSurveys'
-import type { SurveyStatus } from '@ct-service-survey/shared'
+
 
 const useStyles = makeStyles({
   container: {
@@ -93,7 +95,7 @@ export function AdminSurveyManagePage() {
       },
     })
 
-    navigate(`/admin/surveys/${id}/assignments`)
+    void navigate(`/admin/surveys/${id}/assignments`)
   }
 
   const handleDeleteServiceDate = async (serviceDateId: string) => {
@@ -135,7 +137,7 @@ export function AdminSurveyManagePage() {
 
       <div className={styles.section}>
         <h2>Grunddaten</h2>
-        
+
         <div className={styles.formGroup}>
           <label htmlFor="title">Titel</label>
           <Input
@@ -178,7 +180,7 @@ export function AdminSurveyManagePage() {
 
       <div className={styles.section}>
         <h2>Dienste</h2>
-        
+
         {survey.dates.map((serviceDate) => (
           <Card key={serviceDate.id} className={styles.serviceDateCard}>
             <div>
@@ -201,7 +203,7 @@ export function AdminSurveyManagePage() {
               </MenuTrigger>
               <MenuPopover>
                 <MenuList>
-                  <MenuItem icon={<Delete24Regular />} onClick={() => handleDeleteServiceDate(serviceDate.id)}>
+                  <MenuItem icon={<Delete24Regular />} onClick={() => void handleDeleteServiceDate(serviceDate.id)}>
                     Löschen
                   </MenuItem>
                 </MenuList>
@@ -218,7 +220,7 @@ export function AdminSurveyManagePage() {
       <div className={styles.actions}>
         <Button
           appearance="primary"
-          onClick={handleSave}
+          onClick={() => void handleSave()}
           disabled={updateMutation.isPending}
         >
           {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}

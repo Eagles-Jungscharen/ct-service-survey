@@ -1,4 +1,5 @@
 import React from "react";
+
 import { CreateSurveyFormPayload, SelectedEvent } from "../models/CreateSurveyFormPayload";
 
 const INITIAL_FORM_PAYLOAD: CreateSurveyFormPayload = {
@@ -15,7 +16,7 @@ export const useCreateSurveyFormHandlers = () => {
     const [createSurveyFormPayload, setCreateSurveyFormPayload] = React.useState<CreateSurveyFormPayload>(INITIAL_FORM_PAYLOAD);
     const handleTextChange = React.useCallback(
         (field: keyof CreateSurveyFormPayload, value: string) => {
-         
+
             setCreateSurveyFormPayload((prev) => ({ ...prev, [field]: value }));
         },
         []

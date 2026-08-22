@@ -1,17 +1,18 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { makeStyles, tokens, Spinner } from '@fluentui/react-components'
-import { SurveysListPage } from '../pages/SurveysListPage'
-import { SurveyDetailPage } from '../pages/SurveyDetailPage'
-import { SurveyResponsePage } from '../pages/SurveyResponsePage'
-import { MyAssignmentsPage } from '../pages/MyAssignmentsPage'
-import { AdminSurveyManagePage } from '../pages/AdminSurveyManagePage'
-import { CreateSurveyWizard } from '../pages/CreateSurveyWizard'
-import { AssignmentsPage } from '../pages/AssignmentsPage'
-import { CallbackPage } from '../pages/CallbackPage'
-import { HomePage } from '../pages/HomePage'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+
 import { ProtectedRoute } from './ProtectedRoute'
 import { UserMenu } from './UserMenu'
 import { useAppAuth } from '../hooks/useAppAuthContext'
+import { AdminSurveyManagePage } from '../pages/AdminSurveyManagePage'
+import { AssignmentsPage } from '../pages/AssignmentsPage'
+import { CallbackPage } from '../pages/CallbackPage'
+import { CreateSurveyWizard } from '../pages/CreateSurveyWizard'
+import { HomePage } from '../pages/HomePage'
+import { MyAssignmentsPage } from '../pages/MyAssignmentsPage'
+import { SurveyDetailPage } from '../pages/SurveyDetailPage'
+import { SurveyResponsePage } from '../pages/SurveyResponsePage'
+import { SurveysListPage } from '../pages/SurveysListPage'
 
 const useStyles = makeStyles({
   app: {
@@ -57,11 +58,11 @@ const useStyles = makeStyles({
   },
 })
 
-export const AppContent:React.FunctionComponent = () => {
+export const AppContent: React.FunctionComponent = () => {
   const styles = useStyles()
   const auth = useAppAuth()
 
-  
+
   // Auth-Loading-State
   if (auth.isLoading) {
     return (
@@ -97,73 +98,73 @@ export const AppContent:React.FunctionComponent = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/auth/callback" element={<CallbackPage />} />
-            
+
             {/* Öffentliche/Geschützte Routen */}
-            <Route 
-              path="/surveys" 
+            <Route
+              path="/surveys"
               element={
                 <ProtectedRoute>
                   <SurveysListPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/surveys/:id" 
+            <Route
+              path="/surveys/:id"
               element={
                 <ProtectedRoute>
                   <SurveyDetailPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/surveys/:id/respond" 
+            <Route
+              path="/surveys/:id/respond"
               element={
                 <ProtectedRoute>
                   <SurveyResponsePage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/my-assignments" 
+            <Route
+              path="/my-assignments"
               element={
                 <ProtectedRoute>
                   <MyAssignmentsPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+
             {/* Admin-Routen */}
-            <Route 
-              path="/admin/surveys" 
+            <Route
+              path="/admin/surveys"
               element={
                 <ProtectedRoute requireAdmin>
                   <SurveysListPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin/surveys/new" 
+            <Route
+              path="/admin/surveys/new"
               element={
                 <ProtectedRoute requireAdmin>
                   <CreateSurveyWizard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin/surveys/:id" 
+            <Route
+              path="/admin/surveys/:id"
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminSurveyManagePage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin/surveys/:id/assignments" 
+            <Route
+              path="/admin/surveys/:id/assignments"
               element={
                 <ProtectedRoute requireAdmin>
                   <AssignmentsPage />
                 </ProtectedRoute>
-              } 
+              }
             />
           </Routes>
         </main>

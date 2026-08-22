@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom'
+import type { FetchEventsRequest, FetchEventsResponse, SurveyStatus } from '@ct-service-survey/shared'
 import { Button, Input, Textarea, makeStyles, tokens, Text, Spinner, Dropdown, Option, Field, InputOnChangeData, } from '@fluentui/react-components'
-import type { SurveyStatus } from '@ct-service-survey/shared'
 import type { UseMutationResult } from '@tanstack/react-query'
-import { CreateSurveyFormPayload } from '../../models/CreateSurveyFormPayload'
 import React from 'react'
+import { Link } from 'react-router-dom'
+
+import { CreateSurveyFormPayload } from '../../models/CreateSurveyFormPayload'
 
 const useStyles = makeStyles({
     formGroup: {
@@ -45,7 +46,7 @@ interface Step1FormProps {
     createSurveyFormPayload: CreateSurveyFormPayload;
     services: Service[] | undefined;
     servicesLoading: boolean;
-    fetchEventsMutation: UseMutationResult<any, Error, any, unknown>;
+    fetchEventsMutation: UseMutationResult<FetchEventsResponse, Error, FetchEventsRequest, unknown>;
     onFetchEvents: () => void;
     handleTextChange: (field: keyof CreateSurveyFormPayload, value: string) => void;
     handleStatusChange: (value: SurveyStatus) => void;
@@ -59,7 +60,7 @@ export const Step1Form: React.FunctionComponent<Step1FormProps> = (props: Step1F
 
     const selectedServiceName = React.useMemo(() => {
         return createSurveyFormPayload.serviceId !== null
-            ? services?.find((s) => s.id === createSurveyFormPayload.serviceId)?.name || 'Unbekannt'
+            ? services?.find((s) => s.id === createSurveyFormPayload.serviceId)?.name ?? 'Unbekannt'
             : 'Unbekannt';
     }, [createSurveyFormPayload.serviceId, services]);
 

@@ -1,32 +1,32 @@
+import { MeDto } from "@ct-service-survey/shared";
 import React from "react";
 import { useAuth } from "react-oidc-context";
+
 import { AppAuthContext, AppAuthContextValue } from "./AppAuthContext";
-import { MeDto } from "@ct-service-survey/shared";
 import { meApi } from "../services/api";
 
-export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChildren> = (
-  props: React.PropsWithChildren,
-) => {
+export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChildren> = (props: React.PropsWithChildren) => {
   const { children } = props;
   const oidc = useAuth();
   const [me, setMe] = React.useState<MeDto | null>(null);
   const [meLoading, setMeLoading] = React.useState(false);
+  const [prvIsAuthenticated, setPrvIsAuthenticated] = React.useState(false);
 
-  const token = oidc.user?.access_token ?? null;
+  const token = React.useMemo(() => oidc.user?.access_token ?? null, [oidc.user?.access_token]);
 
-  React.useEffect(() => {
+  if (prvIsAuthenticated !== oidc.isAuthenticated) {
+    setPrvIsAuthenticated(oidc.isAuthenticated);
     if (!oidc.isAuthenticated || !token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMe(null);
       return;
     }
     setMeLoading(true);
     console.log("Fetching user info with token:", token);
-    meApi.getMe(token)
+    void meApi.getMe(token)
       .then(setMe)
       .catch(() => setMe(null))
       .finally(() => setMeLoading(false));
-  }, [oidc.isAuthenticated, token]);
+  }
 
   const value: AppAuthContextValue = {
     isAuthenticated: oidc.isAuthenticated,
@@ -36,8 +36,8 @@ export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChil
     displayName: me?.displayName ?? oidc.user?.profile.name ?? '',
     userId: me?.userId ?? '',
     token,
-    login: () => oidc.signinRedirect(),
-    logout: () => oidc.signoutRedirect(),
+    login: () => void oidc.signinRedirect(),
+    logout: () => void oidc.signoutRedirect(),
   };
 
   return <AppAuthContext.Provider value={value}>{children}</AppAuthContext.Provider>;

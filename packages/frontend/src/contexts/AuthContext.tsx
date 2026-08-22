@@ -1,6 +1,7 @@
-import { useAuth, AuthContextProps } from 'react-oidc-context'
-import { useMe } from '../hooks/useMe'
 import type { MeDto } from '@ct-service-survey/shared'
+import { useAuth, AuthContextProps } from 'react-oidc-context'
+
+import { useMe } from '../hooks/useMe'
 
 // Re-export Auth-Context für einfachen Zugriff
 export const useAuthContext = (): AuthContextProps => {
@@ -13,7 +14,7 @@ export type UserInfo = MeDto
 export function useUserInfo(): UserInfo | null {
   const auth = useAuth()
   const { data: meDto, isLoading, error } = useMe()
-  
+
   // Nicht authentifiziert
   if (!auth.isAuthenticated) {
     return null
@@ -25,17 +26,17 @@ export function useUserInfo(): UserInfo | null {
   }
 
   // MeDto vom Backend zurückgeben
-  return meDto || null
+  return meDto ?? null
 }
 
 // Hook für geschützte Routen
 export function useRequireAuth() {
   const auth = useAuth()
-  
+
   if (!auth.isAuthenticated) {
-    auth.signinRedirect()
+    void auth.signinRedirect()
   }
-  
+
   return auth.isAuthenticated
 }
 
@@ -43,10 +44,10 @@ export function useRequireAuth() {
 export function useRequireAdmin() {
   const userInfo = useUserInfo()
   const isAdmin = userInfo?.isAdmin ?? false
-  
+
   if (!isAdmin) {
     throw new Error('Admin-Berechtigung erforderlich')
   }
-  
+
   return isAdmin
 }
