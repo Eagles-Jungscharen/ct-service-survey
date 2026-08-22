@@ -1,7 +1,7 @@
 import type { ChurchToolsEventDto } from '@ct-service-survey/shared'
-import { Button, makeStyles, Text, tokens } from '@fluentui/react-components'
+import { Button, makeStyles, Text, Title1, Title3, tokens } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { Step1Form } from '../components/createSurveyWizard/Step1Form'
@@ -124,6 +124,10 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
     void doSubmit();
   }
 
+  const handleBackToStep1 = useCallback(() => {
+    setStep(1);
+  }, []);
+
   const selectedServiceName =
     services?.find((s) => s.id === createSurveyFormPayload.serviceId)?.name ?? 'Unbekannt'
 
@@ -136,13 +140,13 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
       </div>
 
       <div className={styles.header}>
-        <h1>Neue Umfrage erstellen</h1>
+        <Title1>Neue Umfrage erstellen</Title1>
       </div>
 
       <div className={styles.stepIndicator}>
-        <Text weight="semibold">
+        <Title3>
           Schritt {step} von 2: {step === 1 ? 'Grunddaten und Zeitraum' : 'Termine auswählen'}
-        </Text>
+        </Title3>
       </div>
 
       {step === 1 && (
@@ -166,7 +170,7 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
           selectedEvents={selectedEvents}
           toggleEvent={toggleEvent}
           updateEventNotes={updateEventNotes}
-          onBack={() => setStep(1)}
+          onBack={handleBackToStep1}
           onSubmit={handleSubmit}
           isSubmitting={createSurveyMutation.isPending}
           submitError={createSurveyMutation.isError ? createSurveyMutation.error.message : undefined}

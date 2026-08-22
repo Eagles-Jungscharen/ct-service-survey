@@ -18,17 +18,28 @@ export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChil
     setPrvIsAuthenticated(oidc.isAuthenticated);
     if (!oidc.isAuthenticated || !token) {
       setMe(null);
-      return;
+    } else {
+      setMeLoading(true);
+      console.log("Fetching user info with token:", token);
+      void meApi.getMe(token)
+        .then(setMe)
+        .catch(() => setMe(null))
+        .finally(() => setMeLoading(false));
     }
-    setMeLoading(true);
-    console.log("Fetching user info with token:", token);
-    void meApi.getMe(token)
-      .then(setMe)
-      .catch(() => setMe(null))
-      .finally(() => setMeLoading(false));
   }
 
-  const value: AppAuthContextValue = {
+  const login = React.useCallback(() => {
+    void oidc.signinRedirect();
+  }, [oidc]);
+
+  const logout = React.useCallback(() => {
+    void oidc.signoutRedirect();
+  }, [oidc]);
+
+
+
+
+  const value: AppAuthContextValue = React.useMemo(() => ({
     isAuthenticated: oidc.isAuthenticated,
     isLoading: oidc.isLoading || meLoading,
     isAdmin: me?.isAdmin ?? false,
@@ -36,9 +47,9 @@ export const AppAuthContextProvider: React.FunctionComponent<React.PropsWithChil
     displayName: me?.displayName ?? oidc.user?.profile.name ?? '',
     userId: me?.userId ?? '',
     token,
-    login: () => void oidc.signinRedirect(),
-    logout: () => void oidc.signoutRedirect(),
-  };
+    login,
+    logout,
+  }), [oidc.isAuthenticated, oidc.isLoading, oidc.user?.profile.name, meLoading, me?.isAdmin, me?.groups, me?.displayName, me?.userId, token, login, logout]);
 
   return <AppAuthContext.Provider value={value}>{children}</AppAuthContext.Provider>;
 };
