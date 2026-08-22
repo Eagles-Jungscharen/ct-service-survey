@@ -23,6 +23,11 @@ const useStyles = makeStyles({
         color: tokens.colorPaletteRedForeground1,
         marginTop: tokens.spacingVerticalM,
     },
+    formContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        rowGap: tokens.spacingVerticalM,
+    },
 })
 
 const statusLabels: Record<SurveyStatus, string> = {
@@ -92,7 +97,7 @@ export const Step1Form: React.FunctionComponent<Step1FormProps> = (props: Step1F
     }, [handleServiceIdChange]);
 
     return (
-        <>
+        <div className={styles.formContainer}>
             <Field label="Title der Umfrag" required>
                 <Input
                     id="title"
@@ -183,6 +188,6 @@ export const Step1Form: React.FunctionComponent<Step1FormProps> = (props: Step1F
                     Fehler beim Abrufen der Events: {fetchEventsMutation.error.message}
                 </Text>
             )}
-        </>
+        </div>
     )
 }

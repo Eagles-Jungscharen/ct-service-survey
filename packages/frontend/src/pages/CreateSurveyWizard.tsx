@@ -1,12 +1,13 @@
-import { useState, useMemo } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { Button, Input, makeStyles, tokens, Text, Checkbox, } from '@fluentui/react-components'
-import { ArrowLeft24Regular } from '@fluentui/react-icons'
-import { useCreateSurvey, useFetchChurchToolsEvents } from '../hooks/useSurveys'
-import { useServices } from '../hooks/useServices'
 import type { ChurchToolsEventDto } from '@ct-service-survey/shared'
+import { Button, makeStyles, Text, tokens } from '@fluentui/react-components'
+import { ArrowLeft24Regular } from '@fluentui/react-icons'
+import { useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Step1Form } from '../components/createSurveyWizard/Step1Form'
+import { Step2Form } from '../components/createSurveyWizard/Step2Form'
 import { useCreateSurveyFormHandlers } from '../hooks/useCreateSurveyFormHandlers'
+import { useServices } from '../hooks/useServices'
+import { useCreateSurvey, useFetchChurchToolsEvents } from '../hooks/useSurveys'
 
 const useStyles = makeStyles({
   container: {
@@ -41,15 +42,6 @@ const useStyles = makeStyles({
     marginBottom: tokens.spacingVerticalL,
     paddingBottom: tokens.spacingVerticalM,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-  },
-  eventsTable: {
-    marginTop: tokens.spacingVerticalL,
-  },
-  noEventsHint: {
-    padding: tokens.spacingVerticalL,
-    backgroundColor: tokens.colorNeutralBackground3,
-    borderRadius: tokens.borderRadiusMedium,
-    marginTop: tokens.spacingVerticalL,
   },
 })
 
@@ -159,86 +151,20 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
       )}
 
       {step === 2 && (
-        <>
-          <Text>
-            <strong>Titel:</strong> {createSurveyFormPayload.title}
-          </Text>
-          <Text>
-            <strong>Dienst:</strong> {selectedServiceName}
-          </Text>
-          <Text>
-            <strong>Zeitraum:</strong> {createSurveyFormPayload.startDate} bis {createSurveyFormPayload.endDate}
-          </Text>
-
-          {fetchedEvents.length === 0 ? (
-            <div className={styles.noEventsHint}>
-              <Text weight="semibold">Keine Events gefunden</Text>
-              <Text>
-                Für den gewählten Zeitraum und Dienst wurden keine Termine in ChurchTools gefunden.
-                Sie können manuell Termine hinzufügen oder einen anderen Zeitraum wählen.
-              </Text>
-              {/* TODO: Manuell hinzufügen Button */}
-            </div>
-          ) : (
-            <div className={styles.eventsTable}>
-              <Text weight="semibold">
-                {fetchedEvents.length} Termin(e) gefunden - Wählen Sie die gewünschten aus:
-              </Text>
-              <table style={{ width: '100%', marginTop: tokens.spacingVerticalM }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: '8px' }}>Auswahl</th>
-                    <th style={{ textAlign: 'left', padding: '8px' }}>Name</th>
-                    <th style={{ textAlign: 'left', padding: '8px' }}>Datum</th>
-                    <th style={{ textAlign: 'left', padding: '8px' }}>Notizen</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fetchedEvents.map((event) => (
-                    <tr key={event.id}>
-                      <td style={{ padding: '8px' }}>
-                        <Checkbox
-                          checked={selectedEvents.has(event.id)}
-                          onChange={() => toggleEvent(event)}
-                        />
-                      </td>
-                      <td style={{ padding: '8px' }}>{event.name}</td>
-                      <td style={{ padding: '8px' }}>
-                        {new Date(event.startDate).toLocaleDateString('de-CH')}
-                      </td>
-                      <td style={{ padding: '8px' }}>
-                        <Input
-                          value={selectedEvents.get(event.id)?.notes || ''}
-                          onChange={(_, data) => updateEventNotes(event.id, data.value)}
-                          disabled={!selectedEvents.has(event.id)}
-                          placeholder="Optionale Notizen..."
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div className={styles.actions}>
-            <Button onClick={() => setStep(1)}>Zurück</Button>
-            <Button
-              appearance="primary"
-              onClick={handleSubmit}
-              disabled={selectedEvents.size === 0 || createSurveyMutation.isPending}
-            >
-              {createSurveyMutation.isPending ? 'Wird erstellt...' : 'Umfrage erstellen'}
-            </Button>
-          </div>
-
-          {createSurveyMutation.isError && (
-            <Text className={styles.errorText}>
-              Fehler beim Erstellen der Umfrage: {createSurveyMutation.error.message}
-            </Text>
-          )}
-        </>
+         <Step2Form
+          createSurveyFormPayload={createSurveyFormPayload}
+          selectedServiceName={selectedServiceName}
+          fetchedEvents={fetchedEvents}
+          selectedEvents={selectedEvents}
+          toggleEvent={toggleEvent}
+          updateEventNotes={updateEventNotes}
+          onBack={() => setStep(1)}
+          onSubmit={handleSubmit}
+          isSubmitting={createSurveyMutation.isPending}
+          submitError={createSurveyMutation.isError ? createSurveyMutation.error.message : undefined}
+        />
       )}
     </div>
   )
 }
+        
