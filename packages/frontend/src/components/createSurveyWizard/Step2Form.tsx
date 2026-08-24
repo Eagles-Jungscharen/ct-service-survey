@@ -1,10 +1,11 @@
 import type { ChurchToolsEventDto, CreateSurveyRequest, SurveyDto } from '@ct-service-survey/shared';
-import { Button, makeStyles, Text, tokens } from '@fluentui/react-components';
+import { Button, Field, makeStyles, Subtitle1, Subtitle2, Text, tokens } from '@fluentui/react-components';
 import { UseMutationResult } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { EventTableRow } from './EventTableRow';
+import { useFormattedDate } from '../../hooks/useFormattedDate';
 import { CreateSurveyFormPayload, SelectedEvent } from '../../models/CreateSurveyFormPayload';
 
 const useStyles = makeStyles({
@@ -26,6 +27,15 @@ const useStyles = makeStyles({
     borderRadius: tokens.borderRadiusMedium,
     marginTop: tokens.spacingVerticalL,
   },
+  headerPart: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalS,
+    backgroundColor: tokens.colorNeutralBackground3,
+    padding: tokens.spacingVerticalL,
+    borderRadius: tokens.borderRadiusMedium,
+    border: `1px solid ${tokens.colorBrandStroke1}`,
+  }
 });
 
 interface Step2FormProps {
@@ -52,6 +62,9 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = (props: Step2F
   } = props;
   const styles = useStyles();
   const navigate = useNavigate();
+
+  const startDate = useFormattedDate(createSurveyFormPayload.startDate);
+  const endDate = useFormattedDate(createSurveyFormPayload.endDate);
 
   const selectedEvents = useMemo(() => {
     return new Map(createSurveyFormPayload.selectedEvents.map((e) => [e.event.id, e]));
@@ -88,15 +101,11 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = (props: Step2F
 
   return (
     <>
-      <Text>
-        <strong>Titel:</strong> {createSurveyFormPayload.title}
-      </Text>
-      <Text>
-        <strong>Dienst:</strong> {selectedServiceName}
-      </Text>
-      <Text>
-        <strong>Zeitraum:</strong> {createSurveyFormPayload.startDate} bis {createSurveyFormPayload.endDate}
-      </Text>
+      <div className={styles.headerPart}>
+        <Subtitle1>{createSurveyFormPayload.title}</Subtitle1>
+        <Subtitle2>Dienst: {selectedServiceName}</Subtitle2>
+        <Subtitle2>Zeitraum: {startDate} bis {endDate}</Subtitle2>
+      </div>
 
       {fetchedEvents.length === 0 ? (
         <div className={styles.noEventsHint}>
