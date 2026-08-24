@@ -1,7 +1,11 @@
-import type { ChurchToolsEventDto } from '@ct-service-survey/shared';
-import { Button, Input, makeStyles, tokens, Text, Checkbox } from '@fluentui/react-components';
+import type { ChurchToolsEventDto, CreateSurveyRequest, SurveyDto } from '@ct-service-survey/shared';
+import { Button, makeStyles, Text, tokens } from '@fluentui/react-components';
+import { UseMutationResult } from '@tanstack/react-query';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { CreateSurveyFormPayload } from '../../models/CreateSurveyFormPayload';
+import { EventTableRow } from './EventTableRow';
+import { CreateSurveyFormPayload, SelectedEvent } from '../../models/CreateSurveyFormPayload';
 
 const useStyles = makeStyles({
   actions: {
@@ -25,31 +29,62 @@ const useStyles = makeStyles({
 });
 
 interface Step2FormProps {
-  createSurveyFormPayload: CreateSurveyFormPayload
-  selectedServiceName: string
-  fetchedEvents: ChurchToolsEventDto[]
-  selectedEvents: Map<number, { event: ChurchToolsEventDto; notes: string }>
-  toggleEvent: (event: ChurchToolsEventDto) => void
-  updateEventNotes: (eventId: number, notes: string) => void
-  onBack: () => void
-  onSubmit: () => void
-  isSubmitting: boolean
-  submitError: string | undefined
+  createSurveyFormPayload: CreateSurveyFormPayload;
+  selectedServiceName: string;
+  fetchedEvents: ChurchToolsEventDto[];
+  onBack: () => void;
+  handleRemoveSelectedEvent: (eventId: number) => void;
+  handleAddSelectedEvent: (event: SelectedEvent) => void;
+  handleUpdateSelectedEventNotes: (eventId: number, notes: string) => void;
+  createSurveyMutation: UseMutationResult<SurveyDto, Error, CreateSurveyRequest, unknown>
 }
 
-export const Step2Form: React.FunctionComponent<Step2FormProps> = ({
-  createSurveyFormPayload,
-  selectedServiceName,
-  fetchedEvents,
-  selectedEvents,
-  toggleEvent,
-  updateEventNotes,
-  onBack,
-  onSubmit,
-  isSubmitting,
-  submitError,
-}) => {
-  const styles = useStyles()
+export const Step2Form: React.FunctionComponent<Step2FormProps> = (props: Step2FormProps) => {
+  const {
+    createSurveyFormPayload,
+    selectedServiceName,
+    fetchedEvents,
+    onBack,
+    handleRemoveSelectedEvent,
+    handleAddSelectedEvent,
+    handleUpdateSelectedEventNotes,
+    createSurveyMutation
+  } = props;
+  const styles = useStyles();
+  const navigate = useNavigate();
+
+  const selectedEvents = useMemo(() => {
+    return new Map(createSurveyFormPayload.selectedEvents.map((e) => [e.event.id, e]));
+  }, [createSurveyFormPayload.selectedEvents]);
+
+  const isSubmitting = React.useMemo(() => {
+    return createSurveyMutation.isPending;
+  }, [createSurveyMutation.isPending]);
+
+  const submitError = React.useMemo(() => {
+    return createSurveyMutation.isError ? createSurveyMutation.error.message : undefined;
+  }, [createSurveyMutation.isError, createSurveyMutation.error]);
+
+  const handleSubmit = () => {
+    const dates = Array.from(selectedEvents.values()).map((sel) => ({
+      date: sel.event.startDate,
+      serviceType: String(createSurveyFormPayload.serviceId),
+      notes: sel.notes,
+    }))
+
+    const doSubmit = async () => {
+
+      const result = await createSurveyMutation.mutateAsync({
+        title: createSurveyFormPayload.title,
+        description: createSurveyFormPayload.description,
+        status: createSurveyFormPayload.status,
+        dates,
+      })
+
+      await navigate(`/admin/surveys/${result.id}`)
+    }
+    void doSubmit();
+  }
 
   return (
     <>
@@ -88,26 +123,15 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = ({
             </thead>
             <tbody>
               {fetchedEvents.map((event) => (
-                <tr key={event.id}>
-                  <td style={{ padding: '8px' }}>
-                    <Checkbox
-                      checked={selectedEvents.has(event.id)}
-                      onChange={() => toggleEvent(event)}
-                    />
-                  </td>
-                  <td style={{ padding: '8px' }}>{event.name}</td>
-                  <td style={{ padding: '8px' }}>
-                    {new Date(event.startDate).toLocaleDateString('de-CH')}
-                  </td>
-                  <td style={{ padding: '8px' }}>
-                    <Input
-                      value={selectedEvents.get(event.id)?.notes ?? ''}
-                      onChange={(_, data) => updateEventNotes(event.id, data.value)}
-                      disabled={!selectedEvents.has(event.id)}
-                      placeholder="Optionale Notizen..."
-                    />
-                  </td>
-                </tr>
+                <EventTableRow
+                  key={event.id}
+                  event={event}
+                  isSelected={selectedEvents.has(event.id)}
+                  notes={selectedEvents.get(event.id)?.notes ?? ''}
+                  handleRemoveSelectedEvent={handleRemoveSelectedEvent}
+                  handleAddSelectedEvent={handleAddSelectedEvent}
+                  handleUpdateSelectedEventNotes={handleUpdateSelectedEventNotes}
+                />
               ))}
             </tbody>
           </table>
@@ -118,7 +142,7 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = ({
         <Button onClick={onBack}>Zurück</Button>
         <Button
           appearance="primary"
-          onClick={onSubmit}
+          onClick={handleSubmit}
           disabled={selectedEvents.size === 0 || isSubmitting}
         >
           {isSubmitting ? 'Wird erstellt...' : 'Umfrage erstellen'}

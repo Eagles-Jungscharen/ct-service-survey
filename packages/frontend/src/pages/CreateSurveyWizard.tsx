@@ -1,8 +1,8 @@
 import type { ChurchToolsEventDto } from '@ct-service-survey/shared'
-import { Button, makeStyles, Text, Title1, Title3, tokens } from '@fluentui/react-components'
+import { Button, makeStyles, Title1, Title3, tokens } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
-import { useCallback, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useCallback, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { Step1Form } from '../components/createSurveyWizard/Step1Form'
 import { Step2Form } from '../components/createSurveyWizard/Step2Form'
@@ -48,7 +48,6 @@ const useStyles = makeStyles({
 
 export const CreateSurveyWizard: React.FunctionComponent = () => {
   const styles = useStyles();
-  const navigate = useNavigate();
   const createSurveyMutation = useCreateSurvey();
   const fetchEventsMutation = useFetchChurchToolsEvents()
   const { data: services, isLoading: servicesLoading } = useServices();
@@ -57,10 +56,6 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
   const [step, setStep] = useState(1);
 
   const { createSurveyFormPayload, handleTextChange, handleStatusChange, handleAddSelectedEvent, handleRemoveSelectedEvent, handleServiceIdChange, handleUpdateSelectedEventNotes } = useCreateSurveyFormHandlers();
-
-  const selectedEvents = useMemo(() => {
-    return new Map(createSurveyFormPayload.selectedEvents.map((e) => [e.event.id, e]));
-  }, [createSurveyFormPayload.selectedEvents]);
 
   // Step 2: Event-Auswahl
   const [fetchedEvents, setFetchedEvents] = useState<ChurchToolsEventDto[]>([])
@@ -86,42 +81,6 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
       }
     }
     void doFetch();
-  }
-
-  // Event auswählen/abwählen
-  const toggleEvent = (event: ChurchToolsEventDto) => {
-    if (selectedEvents.has(event.id)) {
-      handleRemoveSelectedEvent(event.id)
-    } else {
-      handleAddSelectedEvent({ event, notes: '' })
-    }
-  }
-
-  // Notes für Event aktualisieren
-  const updateEventNotes = (eventId: number, notes: string) => {
-    handleUpdateSelectedEventNotes(eventId, notes);
-  }
-
-  // Umfrage erstellen (Submit)
-  const handleSubmit = () => {
-    const dates = Array.from(selectedEvents.values()).map((sel) => ({
-      date: sel.event.startDate,
-      serviceType: String(createSurveyFormPayload.serviceId),
-      notes: sel.notes,
-    }))
-
-    const doSubmit = async () => {
-
-      const result = await createSurveyMutation.mutateAsync({
-        title: createSurveyFormPayload.title,
-        description: createSurveyFormPayload.description,
-        status: createSurveyFormPayload.status,
-        dates,
-      })
-
-      await navigate(`/admin/surveys/${result.id}`)
-    }
-    void doSubmit();
   }
 
   const handleBackToStep1 = useCallback(() => {
@@ -167,13 +126,11 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
           createSurveyFormPayload={createSurveyFormPayload}
           selectedServiceName={selectedServiceName}
           fetchedEvents={fetchedEvents}
-          selectedEvents={selectedEvents}
-          toggleEvent={toggleEvent}
-          updateEventNotes={updateEventNotes}
           onBack={handleBackToStep1}
-          onSubmit={handleSubmit}
-          isSubmitting={createSurveyMutation.isPending}
-          submitError={createSurveyMutation.isError ? createSurveyMutation.error.message : undefined}
+          handleRemoveSelectedEvent={handleRemoveSelectedEvent}
+          handleAddSelectedEvent={handleAddSelectedEvent}
+          handleUpdateSelectedEventNotes={handleUpdateSelectedEventNotes}
+          createSurveyMutation={createSurveyMutation}
         />
       )}
     </div>
