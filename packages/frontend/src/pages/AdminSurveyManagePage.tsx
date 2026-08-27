@@ -196,7 +196,7 @@ export function AdminSurveyManagePage() {
       {survey.accessTag && (
         <div className={styles.section}>
           <h2>Zugriff</h2>
-          
+
           <div className={styles.formGroup}>
             <Field label="Zugriffs-TAG" hint="Personen können mit diesem TAG auf die Umfrage zugreifen">
               <div className={styles.tagDisplay}>
