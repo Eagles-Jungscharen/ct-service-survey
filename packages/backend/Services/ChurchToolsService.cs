@@ -1,6 +1,8 @@
+using System.Text.Json;
 using EaglesJungscharen.Azure.ChurchToolIDPServices.Services;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 using Microsoft.Extensions.Logging;
+using Microsoft.Kiota.Serialization;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 
@@ -103,10 +105,15 @@ public class ChurchToolsService(
         var ctClient = _clientFactory.Create();
 
         // Query Personen aus ChurchTools
-        var personsResponse = await ctClient.Persons.GetAsPersonsGetResponseAsync(config =>
+        var personsResponse = await ctClient.Search.GetAsSearchGetResponseAsync(config =>
         {
-            config.QueryParameters.Limit = maxResults;
+            config.QueryParameters.Query = query;
+            config.QueryParameters.DomainTypesAsGetDomainTypesQueryParameterType = [Fegmm.ChurchTools.Search.GetDomain_typesQueryParameterType.Person];
         });
+        //var personsResponse = await ctClient.Persons.GetAsPersonsGetResponseAsync(config =>
+        //{
+        //    config.QueryParameters.Limit = maxResults;
+        //});
 
         if (personsResponse?.Data == null)
         {
@@ -114,26 +121,39 @@ public class ChurchToolsService(
             return [];
         }
 
-        // Filtern nach Name oder E-Mail (client-seitig, da ChurchTools API keinen direkten Filter bietet)
-        var filteredPersons = personsResponse.Data
-            .Where(p => p.Id.HasValue &&
-                       !string.IsNullOrEmpty(p.FirstName) &&
-                       !string.IsNullOrEmpty(p.LastName) &&
-                       (ContainsIgnoreCase($"{p.FirstName} {p.LastName}", query) ||
-                        (!string.IsNullOrEmpty(p.Email) && ContainsIgnoreCase(p.Email, query))))
+        // JSON zu String serialisieren und mit JsonDocument parsen
+        var jsonString = await personsResponse.SerializeAsJsonStringAsync();
+
+        using var document = JsonDocument.Parse(jsonString);
+
+        if (!document.RootElement.TryGetProperty("data", out var dataElement))
+        {
+            _logger.LogWarning("No 'data' property in search response");
+            return [];
+        }
+
+        // Zu PersonDto mappen
+        var persons = dataElement
+            .EnumerateArray()
             .Take(maxResults)
-            .Select(p => new PersonDto(
-                p.Id!.Value.ToString(),
-                $"{p.FirstName} {p.LastName}",
-                p.Email))
+            .Select(item =>
+            {
+                var id = item.GetProperty("domainIdentifier").GetString() ?? "";
+                var attrs = item.GetProperty("domainAttributes");
+                var firstName = attrs.GetProperty("firstName").GetString() ?? "";
+                var lastName = attrs.GetProperty("lastName").GetString() ?? "";
+
+                return new PersonDto(
+                    Id: id,
+                    Name: $"{firstName} {lastName}",
+                    Email: null  // Email ist nicht im Search-Endpoint enthalten
+                );
+            })
             .ToList();
 
-        _logger.LogInformation(
-            "Found {Count} persons matching query: {Query}",
-            filteredPersons.Count,
-            query);
+        _logger.LogInformation("Found {Count} persons matching query: {Query}", persons.Count, query);
 
-        return filteredPersons;
+        return persons;
     }
 
     /// <summary>

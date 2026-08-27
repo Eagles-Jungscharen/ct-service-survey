@@ -1,4 +1,7 @@
 using Azure.Data.Tables;
+using EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
+using GuedesPlace.AzureTools.Tables;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
@@ -6,9 +9,9 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 /// <summary>
 /// Service zum Generieren eindeutiger 6-stelliger alphanumerischer TAGs für Survey-Zugriff
 /// </summary>
-public class AccessTagGenerator(TableServiceClient tableServiceClient, ILogger<AccessTagGenerator> logger)
+public class AccessTagGenerator([FromKeyedServices("SurveyStorage")] ExtendedAzureTableClientService tableService, ILogger<AccessTagGenerator> logger)
 {
-    private readonly TableServiceClient _tableServiceClient = tableServiceClient;
+    private readonly TypedAzureTableClient<SurveyEntity> _surveysTable = tableService.GetTypedTableClient<SurveyEntity>();
     private readonly ILogger<AccessTagGenerator> _logger = logger;
     private const string Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private const int TagLength = 6;
@@ -21,14 +24,13 @@ public class AccessTagGenerator(TableServiceClient tableServiceClient, ILogger<A
     /// <exception cref="InvalidOperationException">Wenn nach MaxRetries kein eindeutiger TAG gefunden wurde</exception>
     public async Task<string> GenerateUniqueTagAsync()
     {
-        var tableClient = _tableServiceClient.GetTableClient("Surveys");
 
         for (int attempt = 0; attempt < MaxRetries; attempt++)
         {
             var tag = GenerateRandomTag();
 
             // Prüfen ob TAG bereits existiert
-            var isDuplicate = await IsTagDuplicateAsync(tableClient, tag);
+            var isDuplicate = await IsTagDuplicateAsync(tag);
 
             if (!isDuplicate)
             {
@@ -61,21 +63,18 @@ public class AccessTagGenerator(TableServiceClient tableServiceClient, ILogger<A
     /// <summary>
     /// Prüft ob ein TAG bereits in der Datenbank existiert
     /// </summary>
-    private async Task<bool> IsTagDuplicateAsync(TableClient tableClient, string tag)
+    private async Task<bool> IsTagDuplicateAsync(string tag)
     {
         try
         {
             // Query alle Surveys und prüfe auf AccessTag (case-insensitive)
-            var query = tableClient.QueryAsync<TableEntity>(
-                filter: $"PartitionKey eq 'Survey'",
-                select: new[] { "AccessTag" }
-            );
+            // Alle Umfragen abrufen
+            var surveysEntries = await _surveysTable.GetAllAsync("Survey");
+            var surveys = surveysEntries.Where(s => s.Entity != null).Select(s => s.Entity).ToList();
 
-            await foreach (var entity in query)
+            foreach (var entity in surveys)
             {
-                if (entity.TryGetValue("AccessTag", out var existingTag) &&
-                    existingTag is string tagString &&
-                    string.Equals(tagString, tag, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(entity.AccessTag, tag, StringComparison.OrdinalIgnoreCase))
                 {
                     return true; // TAG existiert bereits
                 }
