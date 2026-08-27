@@ -267,4 +267,104 @@ public class SurveysFunction(ILogger<SurveysFunction> logger, ISurveyService sur
             }
         });
     }
+
+    /// <summary>
+    /// POST /api/surveys/{surveyId}/activate - Aktiviert eine Draft-Umfrage
+    /// Nur für Admins oder Creator zugänglich
+    /// </summary>
+    [Function("ActivateSurvey")]
+    public async Task<IActionResult> ActivateSurvey(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "surveys/{surveyId}/activate")] HttpRequest req,
+        string surveyId)
+    {
+        return await ExecuteAsync(req, async (request, meDto) =>
+        {
+            try
+            {
+                var activateRequest = await request.ReadFromJsonAsync<ActivateSurveyRequest>();
+                if (activateRequest == null)
+                {
+                    return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
+                }
+
+                // Validierung
+                if (activateRequest.InvitedPersonIds == null || activateRequest.InvitedPersonIds.Count == 0)
+                {
+                    return new BadRequestObjectResult(new ErrorRecord("Mindestens eine Person muss eingeladen werden.", 2005));
+                }
+
+                if (activateRequest.EndDate <= DateTime.UtcNow)
+                {
+                    return new BadRequestObjectResult(new ErrorRecord("Das Ende-Datum muss in der Zukunft liegen.", 2006));
+                }
+
+                var survey = await _surveyService.ActivateSurveyAsync(surveyId, activateRequest, meDto.UserId, meDto.IsAdmin);
+
+                if (survey == null)
+                {
+                    return new NotFoundObjectResult(new ErrorRecord("Umfrage nicht gefunden.", 3000));
+                }
+
+                return new OkObjectResult(survey);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Aktivieren dieser Umfrage.", 1003))
+                {
+                    StatusCode = 403
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new BadRequestObjectResult(new ErrorRecord(ex.Message, 2007));
+            }
+            catch (ArgumentException ex)
+            {
+                return new BadRequestObjectResult(new ErrorRecord(ex.Message, 2008));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Aktivieren der Umfrage {SurveyId}.", surveyId);
+                return new ObjectResult(new ErrorRecord("Fehler beim Aktivieren der Umfrage.", 5005))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
+    }
+
+    /// <summary>
+    /// GET /api/surveys/by-tag/{tag} - Ruft eine Umfrage anhand des Access-TAGs ab
+    /// Öffentlich zugänglich (keine Auth erforderlich)
+    /// </summary>
+    [Function("GetSurveyByTag")]
+    public async Task<IActionResult> GetSurveyByTag(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "surveys/by-tag/{tag}")] HttpRequest req,
+        string tag)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                return new BadRequestObjectResult(new ErrorRecord("TAG fehlt.", 2009));
+            }
+
+            var survey = await _surveyService.GetSurveyByTagAsync(tag);
+
+            if (survey == null)
+            {
+                return new NotFoundObjectResult(new ErrorRecord("Umfrage nicht gefunden oder nicht aktiv.", 3000));
+            }
+
+            return new OkObjectResult(survey);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Umfrage mit TAG {Tag}.", tag);
+            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Umfrage.", 5006))
+            {
+                StatusCode = 500
+            };
+        }
+    }
 }

@@ -1,4 +1,5 @@
 import type {
+  ActivateSurveyRequest,
   CreateSurveyRequest,
   UpdateSurveyRequest,
   CreateServiceDateRequest,
@@ -13,6 +14,7 @@ import { surveysApi } from '../services/api'
 const surveyKeys = {
   all: ['surveys'] as const,
   detail: (id: string) => ['surveys', id] as const,
+  byTag: (tag: string) => ['surveys', 'by-tag', tag] as const,
 }
 
 // Alle Umfragen abrufen
@@ -109,5 +111,30 @@ export function useFetchChurchToolsEvents() {
 
   return useMutation({
     mutationFn: (data: FetchEventsRequest) => surveysApi.fetchEvents(data, auth.token!),
+  })
+}
+
+// Umfrage aktivieren
+export function useActivateSurvey() {
+  const queryClient = useQueryClient();
+  const auth = useAppAuth();
+
+  return useMutation({
+    mutationFn: ({ surveyId, data }: { surveyId: string; data: ActivateSurveyRequest }) =>
+      surveysApi.activate(surveyId, data, auth.token!),
+    onSuccess: (_, variables) => {
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
+    },
+  })
+}
+
+// Umfrage anhand TAG abrufen (öffentlich, keine Auth erforderlich)
+export function useSurveyByTag(tag: string) {
+  return useQuery({
+    queryKey: surveyKeys.byTag(tag),
+    queryFn: () => surveysApi.getByTag(tag),
+    enabled: !!tag && tag.length === 6,
+    retry: false, // Bei 404 nicht wiederholen
   })
 }

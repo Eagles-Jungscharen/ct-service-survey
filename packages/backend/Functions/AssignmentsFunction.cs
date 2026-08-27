@@ -10,21 +10,14 @@ using EaglesJungscharen.Azure.ServiceSurvey.Services;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Functions;
 
-public class AssignmentsFunction
+public class AssignmentsFunction(
+    ILogger<AssignmentsFunction> logger,
+    IAssignmentService assignmentService,
+    IConfiguration configuration)
 {
-    private readonly ILogger<AssignmentsFunction> _logger;
-    private readonly IAssignmentService _assignmentService;
-    private readonly IConfiguration _configuration;
-
-    public AssignmentsFunction(
-        ILogger<AssignmentsFunction> logger,
-        IAssignmentService assignmentService,
-        IConfiguration configuration)
-    {
-        _logger = logger;
-        _assignmentService = assignmentService;
-        _configuration = configuration;
-    }
+    private readonly ILogger<AssignmentsFunction> _logger = logger;
+    private readonly IAssignmentService _assignmentService = assignmentService;
+    private readonly IConfiguration _configuration = configuration;
 
     private (string userId, string displayName, bool isAdmin)? GetUserFromClaims(ClaimsPrincipal? user)
     {

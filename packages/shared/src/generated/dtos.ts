@@ -33,7 +33,6 @@ export interface CreateServiceDateRequest {
 export interface CreateSurveyRequest {
   title: string;
   description: string;
-  status: SurveyStatus;
   dates: CreateServiceDateRequest[];
 }
 
@@ -130,6 +129,9 @@ export interface SurveyDto {
   createdAt: string;
   updatedAt: string;
   dates: ServiceDateDto[];
+  accessTag?: string;
+  endDate?: string;
+  invitedPersonIds?: string[];
 }
 
 export interface SurveyRequestDto {
@@ -152,5 +154,16 @@ export interface UpdateSurveyRequest {
   title: string;
   description: string;
   status: SurveyStatus;
+}
+
+export interface ActivateSurveyRequest {
+  invitedPersonIds: string[];
+  endDate: string;
+}
+
+export interface PersonDto {
+  id: string;
+  name: string;
+  email?: string;
 }
 

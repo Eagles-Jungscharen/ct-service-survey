@@ -13,11 +13,15 @@ import {
   MenuList,
   MenuPopover,
   MenuTrigger,
+  Field,
 } from '@fluentui/react-components'
 import {
   ArrowLeft24Regular,
   MoreVertical24Regular,
   Delete24Regular,
+  Copy24Regular,
+  Rocket24Regular,
+  Share24Regular,
 } from '@fluentui/react-icons'
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
@@ -53,6 +57,23 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: tokens.spacingHorizontalM,
     marginTop: tokens.spacingVerticalL,
+  },
+  tagDisplay: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacingHorizontalS,
+  },
+  tagCode: {
+    fontFamily: 'monospace',
+    fontSize: '18px',
+    fontWeight: 'bold',
+    letterSpacing: '2px',
+  },
+  activateSection: {
+    marginBottom: tokens.spacingVerticalXL,
+    padding: tokens.spacingVerticalL,
+    backgroundColor: tokens.colorNeutralBackground2,
+    borderRadius: tokens.borderRadiusMedium,
   },
 })
 
@@ -107,6 +128,23 @@ export function AdminSurveyManagePage() {
     })
   }
 
+  const handleCopyTag = () => {
+    if (survey?.accessTag) {
+      void navigator.clipboard.writeText(survey.accessTag)
+    }
+  }
+
+  const handleShareLink = () => {
+    if (survey?.accessTag) {
+      const link = `${window.location.origin}/survey/${survey.accessTag}`
+      void navigator.clipboard.writeText(link)
+    }
+  }
+
+  const handleNavigateToActivate = () => {
+    navigate(`/admin/surveys/${id}/activate`)
+  }
+
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -134,6 +172,58 @@ export function AdminSurveyManagePage() {
       <div className={styles.header}>
         <h1>Umfrage bearbeiten</h1>
       </div>
+
+      {/* Aktivierungssektion bei Draft-Status */}
+      {survey.status === 'draft' && (
+        <div className={styles.activateSection}>
+          <Text size={500} weight="semibold" style={{ display: 'block', marginBottom: tokens.spacingVerticalS }}>
+            Umfrage aktivieren
+          </Text>
+          <Text size={300} style={{ display: 'block', marginBottom: tokens.spacingVerticalM }}>
+            Diese Umfrage ist noch im Entwurfsmodus. Aktivieren Sie sie, um Personen einzuladen und einen Zugriffs-TAG zu generieren.
+          </Text>
+          <Button
+            icon={<Rocket24Regular />}
+            appearance="primary"
+            onClick={handleNavigateToActivate}
+          >
+            Umfrage aktivieren
+          </Button>
+        </div>
+      )}
+
+      {/* TAG-Anzeige bei aktivierter Umfrage */}
+      {survey.accessTag && (
+        <div className={styles.section}>
+          <h2>Zugriff</h2>
+          
+          <div className={styles.formGroup}>
+            <Field label="Zugriffs-TAG" hint="Personen können mit diesem TAG auf die Umfrage zugreifen">
+              <div className={styles.tagDisplay}>
+                <Text className={styles.tagCode}>{survey.accessTag}</Text>
+                <Button
+                  icon={<Copy24Regular />}
+                  onClick={handleCopyTag}
+                  appearance="subtle"
+                  size="small"
+                >
+                  Kopieren
+                </Button>
+              </div>
+            </Field>
+          </div>
+
+          <div className={styles.formGroup}>
+            <Button
+              icon={<Share24Regular />}
+              onClick={handleShareLink}
+              appearance="secondary"
+            >
+              Link teilen (kopieren)
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className={styles.section}>
         <h2>Grunddaten</h2>
@@ -163,18 +253,29 @@ export function AdminSurveyManagePage() {
             id="status"
             value={status}
             onChange={(e) => setStatus(e.target.value as SurveyStatus)}
+            disabled={survey.status === 'draft'}
             style={{
               padding: '8px',
               borderRadius: tokens.borderRadiusMedium,
               border: `1px solid ${tokens.colorNeutralStroke1}`,
+              cursor: survey.status === 'draft' ? 'not-allowed' : 'pointer',
+              opacity: survey.status === 'draft' ? 0.6 : 1,
             }}
           >
-            {(Object.keys(statusLabels) as SurveyStatus[]).map((s) => (
-              <option key={s} value={s}>
-                {statusLabels[s]}
-              </option>
-            ))}
+            {survey.status === 'draft' ? (
+              <option value="draft">{statusLabels.draft}</option>
+            ) : (
+              <>
+                <option value="active">{statusLabels.active}</option>
+                <option value="closed">{statusLabels.closed}</option>
+              </>
+            )}
           </select>
+          {survey.status === 'draft' && (
+            <Text size={200} style={{ display: 'block', marginTop: tokens.spacingVerticalXXS }}>
+              Status kann erst nach Aktivierung geändert werden
+            </Text>
+          )}
         </div>
       </div>
 

@@ -67,7 +67,7 @@ public class ChurchToolsService(
 
         // Filtern: Nur Events die den gesuchten Service in eventServices haben
         var filteredEvents = eventsResponse.Data
-            .Where(e => e.Id.HasValue 
+            .Where(e => e.Id.HasValue
                 && !string.IsNullOrEmpty(e.Name)
                 && e.StartDate.HasValue
                 && e.EventServices != null
@@ -86,5 +86,61 @@ public class ChurchToolsService(
             serviceId);
 
         return filteredEvents;
+    }
+
+    /// <summary>
+    /// Sucht Personen in ChurchTools nach Name oder E-Mail
+    /// </summary>
+    public async Task<List<PersonDto>> SearchPersonsAsync(string query, int maxResults = 10)
+    {
+        _logger.LogInformation("Searching persons in ChurchTools with query: {Query}", query);
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return [];
+        }
+
+        var ctClient = _clientFactory.Create();
+
+        // Query Personen aus ChurchTools
+        var personsResponse = await ctClient.Persons.GetAsPersonsGetResponseAsync(config =>
+        {
+            config.QueryParameters.Limit = maxResults;
+        });
+
+        if (personsResponse?.Data == null)
+        {
+            _logger.LogWarning("No persons returned from ChurchTools API");
+            return [];
+        }
+
+        // Filtern nach Name oder E-Mail (client-seitig, da ChurchTools API keinen direkten Filter bietet)
+        var filteredPersons = personsResponse.Data
+            .Where(p => p.Id.HasValue &&
+                       !string.IsNullOrEmpty(p.FirstName) &&
+                       !string.IsNullOrEmpty(p.LastName) &&
+                       (ContainsIgnoreCase($"{p.FirstName} {p.LastName}", query) ||
+                        (!string.IsNullOrEmpty(p.Email) && ContainsIgnoreCase(p.Email, query))))
+            .Take(maxResults)
+            .Select(p => new PersonDto(
+                p.Id!.Value.ToString(),
+                $"{p.FirstName} {p.LastName}",
+                p.Email))
+            .ToList();
+
+        _logger.LogInformation(
+            "Found {Count} persons matching query: {Query}",
+            filteredPersons.Count,
+            query);
+
+        return filteredPersons;
+    }
+
+    /// <summary>
+    /// Hilfsmethode für case-insensitive String-Vergleich
+    /// </summary>
+    private static bool ContainsIgnoreCase(string source, string value)
+    {
+        return source.Contains(value, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -28,16 +28,18 @@ public record SurveyDto(
     SurveyStatus Status,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    List<ServiceDateDto> Dates);
+    List<ServiceDateDto> Dates,
+    string? AccessTag,
+    DateTime? EndDate,
+    List<string>? InvitedPersonIds);
 
 /// <summary>
-/// DTO für Umfrage-Erstellung/Update (POST/PUT Request)
+/// DTO für Umfrage-Erstellung (POST Request)
+/// Status wird immer auf Draft gesetzt
 /// </summary>
 public record CreateSurveyRequest(
     string Title,
     string Description,
-    [property: JsonConverter(typeof(JsonStringEnumConverter))]
-    SurveyStatus Status,
     List<CreateServiceDateRequest> Dates);
 
 /// <summary>
@@ -48,6 +50,13 @@ public record UpdateSurveyRequest(
     string Description,
     [property: JsonConverter(typeof(JsonStringEnumConverter))]
     SurveyStatus Status);
+
+/// <summary>
+/// DTO für Umfrage-Aktivierung (POST Request)
+/// </summary>
+public record ActivateSurveyRequest(
+    List<string> InvitedPersonIds,
+    DateTime EndDate);
 
 /// <summary>
 /// DTO für Dienst-Termin-Erstellung (nested in CreateSurveyRequest)

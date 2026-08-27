@@ -4,12 +4,14 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { ProtectedRoute } from './ProtectedRoute'
 import { UserMenu } from './UserMenu'
 import { useAppAuth } from '../hooks/useAppAuthContext'
+import { ActivateSurveyPage } from '../pages/ActivateSurveyPage'
 import { AdminSurveyManagePage } from '../pages/AdminSurveyManagePage'
 import { AssignmentsPage } from '../pages/AssignmentsPage'
 import { CallbackPage } from '../pages/CallbackPage'
 import { CreateSurveyWizard } from '../pages/CreateSurveyWizard'
 import { HomePage } from '../pages/HomePage'
 import { MyAssignmentsPage } from '../pages/MyAssignmentsPage'
+import { SurveyByTagPage } from '../pages/SurveyByTagPage'
 import { SurveyDetailPage } from '../pages/SurveyDetailPage'
 import { SurveyResponsePage } from '../pages/SurveyResponsePage'
 import { SurveysListPage } from '../pages/SurveysListPage'
@@ -99,6 +101,10 @@ export const AppContent: React.FunctionComponent = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/auth/callback" element={<CallbackPage />} />
 
+            {/* Öffentliche TAG-basierte Umfragen-Zugriff */}
+            <Route path="/survey" element={<SurveyByTagPage />} />
+            <Route path="/survey/:tag" element={<SurveyByTagPage />} />
+
             {/* Öffentliche/Geschützte Routen */}
             <Route
               path="/surveys"
@@ -155,6 +161,14 @@ export const AppContent: React.FunctionComponent = () => {
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminSurveyManagePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/surveys/:id/activate"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <ActivateSurveyPage />
                 </ProtectedRoute>
               }
             />

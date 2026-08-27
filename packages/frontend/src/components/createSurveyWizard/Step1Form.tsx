@@ -1,4 +1,4 @@
-import type { FetchEventsRequest, FetchEventsResponse, SurveyStatus } from '@ct-service-survey/shared'
+import type { FetchEventsRequest, FetchEventsResponse } from '@ct-service-survey/shared'
 import { Button, Input, Textarea, makeStyles, tokens, Text, Spinner, Dropdown, Option, Field, InputOnChangeData, } from '@fluentui/react-components'
 import type { UseMutationResult } from '@tanstack/react-query'
 import React from 'react'
@@ -31,12 +31,6 @@ const useStyles = makeStyles({
     },
 })
 
-const statusLabels: Record<SurveyStatus, string> = {
-    draft: 'Entwurf',
-    active: 'Aktiv',
-    closed: 'Geschlossen',
-}
-
 interface Service {
     id: number
     name: string
@@ -49,14 +43,13 @@ interface Step1FormProps {
     fetchEventsMutation: UseMutationResult<FetchEventsResponse, Error, FetchEventsRequest, unknown>;
     onFetchEvents: () => void;
     handleTextChange: (field: keyof CreateSurveyFormPayload, value: string) => void;
-    handleStatusChange: (value: SurveyStatus) => void;
     handleServiceIdChange: (value: number | undefined) => void;
 }
 
 export const Step1Form: React.FunctionComponent<Step1FormProps> = (props: Step1FormProps) => {
     const styles = useStyles()
 
-    const { createSurveyFormPayload, services, servicesLoading, fetchEventsMutation, onFetchEvents, handleTextChange, handleStatusChange, handleServiceIdChange } = props
+    const { createSurveyFormPayload, services, servicesLoading, fetchEventsMutation, onFetchEvents, handleTextChange, handleServiceIdChange } = props
 
     const selectedServiceName = React.useMemo(() => {
         return createSurveyFormPayload.serviceId !== null
@@ -81,10 +74,6 @@ export const Step1Form: React.FunctionComponent<Step1FormProps> = (props: Step1F
     const updateDescription = React.useCallback((_ev: React.ChangeEvent<HTMLTextAreaElement, Element>, data: InputOnChangeData) => {
         handleTextChange('description', data.value);
     }, [handleTextChange]);
-
-    const updateStatus = React.useCallback((value: SurveyStatus) => {
-        handleStatusChange(value);
-    }, [handleStatusChange]);
 
     const updateStartDate = React.useCallback((_ev: React.ChangeEvent<HTMLInputElement, Element>, data: InputOnChangeData) => {
         handleTextChange('startDate', data.value);
@@ -116,22 +105,6 @@ export const Step1Form: React.FunctionComponent<Step1FormProps> = (props: Step1F
                     resize="vertical"
                     placeholder="Weitere Informationen zur Umfrage..."
                 />
-            </Field>
-            <Field label="Status" required>
-                <Dropdown
-                    placeholder="Status auswählen..."
-                    value={statusLabels[createSurveyFormPayload.status]}
-                    selectedOptions={[createSurveyFormPayload.status]}
-                    onOptionSelect={(_, data) =>
-                        updateStatus(data.optionValue as SurveyStatus)
-                    }
-                >
-                    {(Object.keys(statusLabels) as SurveyStatus[]).map((s) => (
-                        <Option key={s} value={s}>
-                            {statusLabels[s]}
-                        </Option>
-                    ))}
-                </Dropdown>
             </Field>
             <Field label="Start-Datum" required>
                 <Input

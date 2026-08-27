@@ -16,4 +16,9 @@ public class SurveyEntity
     public string Status { get; set; } = "Draft"; // Draft, Active, Closed
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    // Activation-related fields
+    public string? AccessTag { get; set; } // 6-stelliger alphanumerischer TAG für öffentlichen Zugriff
+    public DateTime? EndDate { get; set; } // Ende-Datum der Umfrage
+    public string? InvitedPersonIds { get; set; } // JSON-Array von ChurchTools Person-IDs
 }

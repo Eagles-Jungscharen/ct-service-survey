@@ -20,4 +20,12 @@ public interface IChurchToolsService
     /// <param name="serviceId">Service-ID zum Filtern</param>
     /// <returns>Liste von Events die dem Service zugeordnet sind</returns>
     Task<List<ChurchToolsEventDto>> FetchEventsAsync(DateTime from, DateTime to, int serviceId);
+
+    /// <summary>
+    /// Sucht Personen in ChurchTools nach Name oder E-Mail
+    /// </summary>
+    /// <param name="query">Suchbegriff (Name oder E-Mail)</param>
+    /// <param name="maxResults">Maximale Anzahl Ergebnisse</param>
+    /// <returns>Liste von gefundenen Personen</returns>
+    Task<List<PersonDto>> SearchPersonsAsync(string query, int maxResults = 10);
 }

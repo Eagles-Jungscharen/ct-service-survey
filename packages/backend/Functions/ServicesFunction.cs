@@ -44,4 +44,37 @@ public class ServicesFunction(ILogger<ServicesFunction> logger,IChurchToolsServi
             }
         });
     }
+
+    /// <summary>
+    /// GET /api/persons/search?q={query} - Sucht Personen in ChurchTools
+    /// Nur für Admins zugänglich
+    /// </summary>
+    [Function("SearchPersons")]
+    public async Task<IActionResult> SearchPersons(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "persons/search")] HttpRequest req)
+    {
+        return await ExecuteAsAdminAsync(req, async (request, meDto) =>
+        {
+            try
+            {
+                var query = request.Query["q"].ToString();
+                
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    return new BadRequestObjectResult(new ErrorRecord("Suchbegriff 'q' fehlt.", 2001));
+                }
+
+                var persons = await _churchToolsService.SearchPersonsAsync(query);
+                return new OkObjectResult(persons);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Suchen von Personen in ChurchTools.");
+                return new ObjectResult(new ErrorRecord("Fehler beim Suchen von Personen.", 5001))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
+    }
 }

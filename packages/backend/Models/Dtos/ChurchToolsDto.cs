@@ -21,3 +21,11 @@ public record FetchEventsRequest(
 /// </summary>
 public record FetchEventsResponse(
     List<ChurchToolsEventDto> Events);
+
+/// <summary>
+/// DTO für eine ChurchTools Person (für Personen-Suche)
+/// </summary>
+public record PersonDto(
+    string Id,
+    string Name,
+    string? Email);

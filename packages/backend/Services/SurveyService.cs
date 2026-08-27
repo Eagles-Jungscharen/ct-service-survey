@@ -2,22 +2,24 @@ using Microsoft.Extensions.DependencyInjection;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
 using GuedesPlace.AzureTools.Tables;
+using System.Text.Json;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 
 /// <summary>
 /// Service-Implementierung für Umfragen-Verwaltung
 /// </summary>
-public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTableClientService tableService) : ISurveyService
+public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTableClientService tableService, AccessTagGenerator tagGenerator) : ISurveyService
 {
     private readonly TypedAzureTableClient<SurveyEntity> _surveysTable = tableService.GetTypedTableClient<SurveyEntity>();
     private readonly TypedAzureTableClient<ServiceDateEntity> _serviceDatesTable = tableService.GetTypedTableClient<ServiceDateEntity>();
+    private readonly AccessTagGenerator _tagGenerator = tagGenerator;
 
     public async Task<List<SurveyDto>> GetSurveysAsync(string userId, bool isAdmin, SurveyStatus? statusFilter = null)
     {
         // Alle Umfragen abrufen
         var surveysEntries = await _surveysTable.GetAllAsync("Survey");
-        var surveys = surveysEntries.Where(s => s.Entity != null).Select(s=>s.Entity).ToList();
+        var surveys = surveysEntries.Where(s => s.Entity != null).Select(s => s.Entity).ToList();
 
         // Filtern nach Status und Berechtigung
         var filteredSurveys = surveys.Where(s =>
@@ -73,7 +75,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             CreatorName = creatorName,
             Title = request.Title,
             Description = request.Description,
-            Status = request.Status.ToString(),
+            Status = "Draft", // Immer Draft bei Erstellung
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -234,12 +236,90 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         }
     }
 
+    public async Task<SurveyDto?> ActivateSurveyAsync(string surveyId, ActivateSurveyRequest request, string userId, bool isAdmin)
+    {
+        // Prüfen ob Umfrage existiert
+        SurveyEntity survey;
+        try
+        {
+            var response = await _surveysTable.GetByIdAsync(surveyId, "Survey");
+            survey = response.Entity;
+        }
+        catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+
+        // Berechtigung prüfen: nur Creator oder Admin
+        if (!isAdmin && survey.CreatorId != userId)
+        {
+            throw new UnauthorizedAccessException("Keine Berechtigung zum Aktivieren dieser Umfrage.");
+        }
+
+        // Nur Draft-Umfragen können aktiviert werden
+        if (survey.Status != "Draft")
+        {
+            throw new InvalidOperationException("Nur Entwürfe können aktiviert werden.");
+        }
+
+        // Validierung
+        if (request.InvitedPersonIds == null || request.InvitedPersonIds.Count == 0)
+        {
+            throw new ArgumentException("Mindestens eine Person muss eingeladen werden.");
+        }
+
+        if (request.EndDate <= DateTime.UtcNow)
+        {
+            throw new ArgumentException("Das Ende-Datum muss in der Zukunft liegen.");
+        }
+
+        // Eindeutigen TAG generieren
+        var accessTag = await _tagGenerator.GenerateUniqueTagAsync();
+
+        // Survey aktualisieren
+        survey.Status = "Active";
+        survey.AccessTag = accessTag;
+        survey.EndDate = request.EndDate.ToUniversalTime();
+        survey.InvitedPersonIds = JsonSerializer.Serialize(request.InvitedPersonIds);
+        survey.UpdatedAt = DateTime.UtcNow;
+
+        await _surveysTable.InsertOrMergeAsync(surveyId, "Survey", survey);
+
+        var dates = await GetServiceDatesForSurveyAsync(surveyId);
+        return MapToDto(survey, dates);
+    }
+
+    public async Task<SurveyDto?> GetSurveyByTagAsync(string tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            return null;
+        }
+
+        // Alle Surveys durchsuchen (case-insensitive)
+        var surveysEntries = await _surveysTable.GetAllAsync("Survey");
+        var surveys = surveysEntries.Where(s => s.Entity != null).Select(s => s.Entity).ToList();
+
+        var survey = surveys.FirstOrDefault(s =>
+            !string.IsNullOrEmpty(s.AccessTag) &&
+            string.Equals(s.AccessTag, tag, StringComparison.OrdinalIgnoreCase) &&
+            s.Status == "Active");
+
+        if (survey == null)
+        {
+            return null;
+        }
+
+        var dates = await GetServiceDatesForSurveyAsync(survey.SurveyId);
+        return MapToDto(survey, dates);
+    }
+
     // Private Helper-Methoden
 
     private async Task<List<ServiceDateDto>> GetServiceDatesForSurveyAsync(string surveyId)
     {
         var allServiceDates = await _serviceDatesTable.GetAllAsync(surveyId);
-        var dates = allServiceDates.Where(d => d.Entity != null).Select(d => d.Entity).Select(date=> new ServiceDateDto(
+        var dates = allServiceDates.Where(d => d.Entity != null).Select(d => d.Entity).Select(date => new ServiceDateDto(
                 date.ServiceDateId,
                 date.SurveyId,
                 date.Date,
@@ -268,7 +348,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             Notes = request.Notes
         };
 
-        await _serviceDatesTable.InsertOrReplaceAsync(serviceDateId, surveyId,entity);
+        await _serviceDatesTable.InsertOrReplaceAsync(serviceDateId, surveyId, entity);
 
         return new ServiceDateDto(
             serviceDateId,
@@ -282,6 +362,21 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
 
     private static SurveyDto MapToDto(SurveyEntity entity, List<ServiceDateDto> dates)
     {
+        // InvitedPersonIds aus JSON deserialisieren
+        List<string>? invitedPersonIds = null;
+        if (!string.IsNullOrEmpty(entity.InvitedPersonIds))
+        {
+            try
+            {
+                invitedPersonIds = JsonSerializer.Deserialize<List<string>>(entity.InvitedPersonIds);
+            }
+            catch
+            {
+                // Bei Fehler null zurückgeben
+                invitedPersonIds = null;
+            }
+        }
+
         return new SurveyDto(
             entity.SurveyId,
             entity.CreatorId,
@@ -291,7 +386,10 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             Enum.Parse<SurveyStatus>(entity.Status),
             entity.CreatedAt,
             entity.UpdatedAt,
-            dates
+            dates,
+            entity.AccessTag,
+            entity.EndDate,
+            invitedPersonIds
         );
     }
 }

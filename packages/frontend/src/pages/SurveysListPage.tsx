@@ -9,7 +9,6 @@ import {
   tokens,
 } from '@fluentui/react-components'
 import { Add24Regular } from '@fluentui/react-icons'
-import * as React from 'react'
 import { Link } from 'react-router-dom'
 
 import { useSurveys } from '../hooks/useSurveys'

@@ -41,4 +41,14 @@ public interface ISurveyService
     /// Löscht einen Termin aus einer Umfrage
     /// </summary>
     Task<bool> DeleteServiceDateAsync(string surveyId, string serviceDateId, string userId, bool isAdmin);
+
+    /// <summary>
+    /// Aktiviert eine Draft-Umfrage mit eingeladenen Personen und Ende-Datum
+    /// </summary>
+    Task<SurveyDto?> ActivateSurveyAsync(string surveyId, ActivateSurveyRequest request, string userId, bool isAdmin);
+
+    /// <summary>
+    /// Ruft eine Umfrage anhand des Access-TAGs ab (nur Active)
+    /// </summary>
+    Task<SurveyDto?> GetSurveyByTagAsync(string tag);
 }

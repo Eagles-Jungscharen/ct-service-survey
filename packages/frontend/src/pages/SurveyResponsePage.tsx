@@ -12,7 +12,7 @@ import {
   CardHeader,
 } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 
 import { useMyResponses, useSubmitResponses } from '../hooks/useResponses'

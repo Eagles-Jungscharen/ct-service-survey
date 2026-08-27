@@ -1,5 +1,5 @@
 import type { ChurchToolsEventDto, CreateSurveyRequest, SurveyDto } from '@ct-service-survey/shared';
-import { Button, Field, makeStyles, Subtitle1, Subtitle2, Text, tokens } from '@fluentui/react-components';
+import { Button, makeStyles, Title3, Subtitle2, Text, tokens } from '@fluentui/react-components';
 import { UseMutationResult } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -90,7 +90,6 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = (props: Step2F
       const result = await createSurveyMutation.mutateAsync({
         title: createSurveyFormPayload.title,
         description: createSurveyFormPayload.description,
-        status: createSurveyFormPayload.status,
         dates,
       })
 
@@ -102,7 +101,7 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = (props: Step2F
   return (
     <>
       <div className={styles.headerPart}>
-        <Subtitle1>{createSurveyFormPayload.title}</Subtitle1>
+        <Title3>{createSurveyFormPayload.title}</Title3>
         <Subtitle2>Dienst: {selectedServiceName}</Subtitle2>
         <Subtitle2>Zeitraum: {startDate} bis {endDate}</Subtitle2>
       </div>

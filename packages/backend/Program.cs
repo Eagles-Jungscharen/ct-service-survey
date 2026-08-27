@@ -71,6 +71,7 @@ services.AddScoped<IResponseService, ResponseService>();
 services.AddScoped<IAssignmentService, AssignmentService>();
 services.AddScoped<IMeService, MeService>();
 services.AddScoped<IChurchToolsService, ChurchToolsService>();
+services.AddScoped<AccessTagGenerator>();
 builder.UseMiddleware<JwtValidationMiddleware>();
 builder.UseMiddleware<ChurchToolReferenceMiddleware>();
 

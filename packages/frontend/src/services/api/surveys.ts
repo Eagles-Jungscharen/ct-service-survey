@@ -1,4 +1,4 @@
-import type { CreateServiceDateRequest, CreateSurveyRequest, FetchEventsRequest, FetchEventsResponse, ServiceDateDto, SurveyDto, UpdateSurveyRequest, } from '@ct-service-survey/shared'
+import type { ActivateSurveyRequest, CreateServiceDateRequest, CreateSurveyRequest, FetchEventsRequest, FetchEventsResponse, ServiceDateDto, SurveyDto, UpdateSurveyRequest, } from '@ct-service-survey/shared'
 
 import { apiClient } from './client'
 
@@ -31,4 +31,11 @@ export const surveysApi = {
   // Events aus ChurchTools abrufen (für Survey-Wizard)
   fetchEvents: (data: FetchEventsRequest, token: string) =>
     apiClient.post<FetchEventsResponse>('/api/surveys/fetch-events', token, data),
+
+  // Umfrage aktivieren
+  activate: (surveyId: string, data: ActivateSurveyRequest, token: string) =>
+    apiClient.post<SurveyDto>(`/api/surveys/${surveyId}/activate`, token, data),
+
+  // Umfrage anhand TAG abrufen (öffentlich)
+  getByTag: (tag: string) => apiClient.get<SurveyDto>(`/api/surveys/by-tag/${tag}`, ''),
 }

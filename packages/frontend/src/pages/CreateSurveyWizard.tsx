@@ -55,7 +55,7 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
   // Wizard State
   const [step, setStep] = useState(1);
 
-  const { createSurveyFormPayload, handleTextChange, handleStatusChange, handleAddSelectedEvent, handleRemoveSelectedEvent, handleServiceIdChange, handleUpdateSelectedEventNotes } = useCreateSurveyFormHandlers();
+  const { createSurveyFormPayload, handleTextChange, handleAddSelectedEvent, handleRemoveSelectedEvent, handleServiceIdChange, handleUpdateSelectedEventNotes } = useCreateSurveyFormHandlers();
 
   // Step 2: Event-Auswahl
   const [fetchedEvents, setFetchedEvents] = useState<ChurchToolsEventDto[]>([])
@@ -116,7 +116,6 @@ export const CreateSurveyWizard: React.FunctionComponent = () => {
           fetchEventsMutation={fetchEventsMutation}
           onFetchEvents={handleFetchEvents}
           handleTextChange={handleTextChange}
-          handleStatusChange={handleStatusChange}
           handleServiceIdChange={handleServiceIdChange}
         />
       )}
