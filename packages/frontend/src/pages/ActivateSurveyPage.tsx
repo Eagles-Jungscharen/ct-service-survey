@@ -15,13 +15,15 @@ import {
     MessageBar,
     MessageBarBody,
     MessageBarTitle,
+    OptionOnSelectData,
+    SelectionEvents,
 } from '@fluentui/react-components'
 import {
     ArrowLeft24Regular,
     Copy24Regular,
     CheckmarkCircle24Filled,
 } from '@fluentui/react-icons'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 
 import { usePersonSearch } from '../hooks/usePersonSearch'
@@ -86,11 +88,10 @@ export function ActivateSurveyPage() {
 
     // Prüfen ob Survey im Draft-Status ist, sonst redirect
     if (!isLoading && survey && survey.status !== 'draft') {
-        navigate(`/admin/surveys/${id}`)
-        return null
+        void navigate(`/admin/surveys/${id}`)
     }
 
-    const handlePersonSelect = (_event: any, data: any) => {
+    const handlePersonSelect = (_event: SelectionEvents, data: OptionOnSelectData) => {
         const selectedId = data.optionValue
         const person = searchResults?.find((p) => p.id === selectedId)
         if (person && !selectedPersons.some((p) => p.id === person.id)) {
@@ -103,26 +104,29 @@ export function ActivateSurveyPage() {
         setSelectedPersons(selectedPersons.filter((p) => p.id !== personId))
     }
 
-    const handleActivate = async () => {
+    const handleActivate = React.useCallback(() => {
         if (!id || selectedPersons.length === 0 || !endDate) return
 
-        try {
-            const result = await activateMutation.mutateAsync({
-                surveyId: id,
-                data: {
-                    invitedPersonIds: selectedPersons.map((p) => p.id),
-                    endDate: new Date(endDate).toISOString(),
-                },
-            })
+        const activateAsync = async () => {
+            try {
+                const result = await activateMutation.mutateAsync({
+                    surveyId: id,
+                    data: {
+                        invitedPersonIds: selectedPersons.map((p) => p.id),
+                        endDate: new Date(endDate).toISOString(),
+                    },
+                })
 
-            // TAG anzeigen
-            if (result.accessTag) {
-                setActivatedTag(result.accessTag)
+                // TAG anzeigen
+                if (result.accessTag) {
+                    setActivatedTag(result.accessTag)
+                }
+            } catch (error) {
+                console.error('Aktivierung fehlgeschlagen:', error)
             }
-        } catch (error) {
-            console.error('Aktivierung fehlgeschlagen:', error)
         }
-    }
+        void activateAsync()
+    }, [id, selectedPersons, endDate, activateMutation]);
 
     const handleCopyTag = () => {
         if (activatedTag) {
@@ -131,12 +135,24 @@ export function ActivateSurveyPage() {
     }
 
     const handleBackToSurvey = () => {
-        navigate(`/admin/surveys/${id}`)
+        void navigate(`/admin/surveys/${id}`)
     }
 
     const isFormValid = selectedPersons.length > 0 && endDate !== ''
     const minDate = new Date().toISOString().split('T')[0] // Heute als Minimum
 
+    if (!isLoading && survey && survey.status !== 'draft') {
+        return (
+            <div>
+                <Text>Die Umfrage kann nicht aktiviert werden, da sie sich nicht im Entwurfsstatus befindet.</Text>
+                <Link to="/admin/surveys">
+                    <Button appearance="primary">
+                        Zurück zur Übersicht
+                    </Button>
+                </Link>
+            </div>
+        )
+    }
     if (isLoading) {
         return (
             <div className={styles.container}>

@@ -36,6 +36,7 @@ var exportedTypes = new[]
     typeof(ChurchToolsEventDto),
     typeof(FetchEventsRequest),
     typeof(FetchEventsResponse),
+    typeof(PersonDto)
 };
 
 var builder = new StringBuilder();

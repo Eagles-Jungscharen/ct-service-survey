@@ -81,6 +81,12 @@ export interface MyAssignmentDto {
   assignedAt: string;
 }
 
+export interface PersonDto {
+  id: string;
+  name: string;
+  email?: string;
+}
+
 export interface ResponseDto {
   responseId: string;
   surveyId: string;
