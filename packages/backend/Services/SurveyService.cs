@@ -292,6 +292,45 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         return survey.MapToDto(dates);
     }
 
+    public async Task<SurveyDto?> CloseSurveyAsync(string surveyId, string userId, bool isAdmin)
+    {
+        // Prüfen ob Umfrage existiert
+        SurveyEntity survey;
+        try
+        {
+            var response = await _surveysTable.GetByIdAsync(surveyId, "Survey");
+            survey = response.Entity;
+        }
+        catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+
+        // Berechtigung prüfen: nur Creator oder Admin
+        if (!isAdmin && survey.CreatorId != userId)
+        {
+            throw new UnauthorizedAccessException("Keine Berechtigung zum Schließen dieser Umfrage.");
+        }
+
+        // Nur Draft-Umfragen können aktiviert werden
+        if (survey.Status != "Active")
+        {
+            throw new InvalidOperationException("Nur aktive Umfragen können geschlossen werden.");
+        }
+
+
+        // Eindeutigen TAG generieren
+
+        // Survey aktualisieren
+        survey.Status = "Closed";
+        survey.UpdatedAt = DateTime.UtcNow;
+
+        await _surveysTable.InsertOrMergeAsync(surveyId, "Survey", survey);
+
+        var dates = await GetServiceDatesForSurveyAsync(surveyId);
+        return survey.MapToDto(dates);
+    }
+
     public async Task<SurveyDto?> GetSurveyByTagAsync(string tag)
     {
         if (string.IsNullOrWhiteSpace(tag))

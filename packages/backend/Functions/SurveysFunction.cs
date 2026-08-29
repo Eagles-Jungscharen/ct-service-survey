@@ -334,6 +334,54 @@ public class SurveysFunction(ILogger<SurveysFunction> logger, ISurveyService sur
     }
 
     /// <summary>
+    /// POST /api/surveys/{surveyId}/close - Schließt eine aktive Umfrage
+    /// Nur für Admins oder Creator zugänglich
+    /// </summary>
+    [Function("CloseSurvey")]
+    public async Task<IActionResult> CloseSurvey(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "surveys/{surveyId}/close")] HttpRequest req, string surveyId)
+    {
+        return await ExecuteAsync(req, async (request, meDto) =>
+        {
+            try
+            {
+                var survey = await _surveyService.CloseSurveyAsync(surveyId, meDto.UserId, meDto.IsAdmin);
+
+                if (survey == null)
+                {
+                    return new NotFoundObjectResult(new ErrorRecord("Umfrage nicht gefunden.", 3000));
+                }
+
+                return new OkObjectResult(survey);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Schließen dieser Umfrage.", 1003))
+                {
+                    StatusCode = 403
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new BadRequestObjectResult(new ErrorRecord(ex.Message, 2007));
+            }
+            catch (ArgumentException ex)
+            {
+                return new BadRequestObjectResult(new ErrorRecord(ex.Message, 2008));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Schließen der Umfrage {SurveyId}.", surveyId);
+                return new ObjectResult(new ErrorRecord("Fehler beim Schließen der Umfrage.", 5007))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
+    }
+
+
+    /// <summary>
     /// GET /api/surveys/by-tag/{tag} - Ruft eine Umfrage anhand des Access-TAGs ab
     /// Öffentlich zugänglich (keine Auth erforderlich)
     /// </summary>

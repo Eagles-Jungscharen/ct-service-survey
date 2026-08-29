@@ -48,6 +48,11 @@ public interface ISurveyService
     Task<SurveyDto?> ActivateSurveyAsync(string surveyId, ActivateSurveyRequest request, string userId, bool isAdmin);
 
     /// <summary>
+    /// Schliesst eine Umfrage manuell
+    /// </summary>
+    Task<SurveyDto?> CloseSurveyAsync(string surveyId, string userId, bool isAdmin);
+
+    /// <summary>
     /// Ruft eine Umfrage anhand des Access-TAGs ab (nur Active)
     /// </summary>
     Task<SurveyDto?> GetSurveyByTagAsync(string tag);

@@ -36,6 +36,10 @@ export const surveysApi = {
   activate: (surveyId: string, data: ActivateSurveyRequest, token: string) =>
     apiClient.post<SurveyDto>(`/api/surveys/${surveyId}/activate`, token, data),
 
+  // Umfrage schließen
+  close: (surveyId: string, token: string) =>
+    apiClient.post<SurveyDto>(`/api/surveys/${surveyId}/close`, token),
+
   // Umfrage anhand TAG abrufen (öffentlich)
   getByTag: (tag: string) => apiClient.get<SurveyDto>(`/api/surveys/by-tag/${tag}`, ''),
 }

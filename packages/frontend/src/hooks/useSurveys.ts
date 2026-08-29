@@ -123,6 +123,22 @@ export const useActivateSurvey = () => {
   });
 }
 
+// Umfrage schließen
+export const useCloseSurvey = () => {
+  const queryClient = useQueryClient();
+  const auth = useAppAuth();
+
+  return useMutation({
+    mutationFn: ({ surveyId }: { surveyId: string }) =>
+      surveysApi.close(surveyId, auth.token!),
+    onSuccess: (_, variables) => {
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
+    },
+  });
+}
+
+
 // Umfrage anhand TAG abrufen (öffentlich, keine Auth erforderlich)
 export const useSurveyByTag = (tag: string) => {
   return useQuery({

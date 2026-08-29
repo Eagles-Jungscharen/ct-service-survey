@@ -5,7 +5,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useFormattedDate } from '../hooks/useFormattedDate';
-import { useDeleteSurvey } from '../hooks/useSurveys';
+import { useCloseSurvey, useDeleteSurvey } from '../hooks/useSurveys';
 
 const useStyles = makeStyles({
     card: {
@@ -59,7 +59,9 @@ interface SurveyCardProps {
 export const SurveyCard = ({ survey }: SurveyCardProps) => {
     const styles = useStyles();
     const navigate = useNavigate();
+
     const deleteSurvey = useDeleteSurvey();
+    const closeSurvey = useCloseSurvey();
 
     const surveyEndDate = useFormattedDate(survey.endDate);
 
@@ -68,11 +70,16 @@ export const SurveyCard = ({ survey }: SurveyCardProps) => {
     }, [navigate, survey.id]);
 
     const canBeDeleted = React.useMemo(() => survey.status !== 'active', [survey.status]);
+    const canBeClosed = React.useMemo(() => survey.status === 'active', [survey.status]);
+
 
     const handleDelete = React.useCallback(() => {
         void deleteSurvey.mutateAsync(survey.id);
     }, [deleteSurvey, survey.id]);
 
+    const handleClose = React.useCallback(() => {
+        void closeSurvey.mutateAsync({ surveyId: survey.id });
+    }, [closeSurvey, survey.id]);
     return (
         <Card className={styles.card}>
             <CardHeader
@@ -99,7 +106,7 @@ export const SurveyCard = ({ survey }: SurveyCardProps) => {
             </div>
             <CardFooter>
                 <Button icon={<DeleteRegular />} onClick={handleDelete} disabled={!canBeDeleted}>Löschen</Button>
-                <Button icon={<CheckmarkRegular />}>Abschließen</Button>
+                <Button icon={<CheckmarkRegular />} onClick={handleClose} disabled={!canBeClosed}>Abschließen</Button>
                 <Button appearance="primary" icon={<OpenRegular />} onClick={handleOpen}>Öffnen</Button>
             </CardFooter>
         </Card>
