@@ -1,14 +1,13 @@
-import { Button, Spinner, Text, makeStyles, tokens, Card, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
+import { Button, Spinner, Text, makeStyles, tokens } from '@fluentui/react-components';
 import {
   ArrowLeft24Regular,
-  MoreVertical24Regular,
-  Delete24Regular,
 } from '@fluentui/react-icons';
 import { useParams, Link } from 'react-router-dom';
 
 import { ActivateSurveySection } from '../components/adminSurveyManagePage/ActivateSurveySection';
 import { SurveyAccessSection } from '../components/adminSurveyManagePage/SurveyAccessSection';
 import { SurveyBasicDataSection } from '../components/adminSurveyManagePage/SurveyBasicDataSection';
+import { ServiceDateCard } from '../components/ServiceDateCard';
 import { useSurvey, useUpdateSurvey, useDeleteServiceDate } from '../hooks/useSurveys';
 
 const useStyles = makeStyles({
@@ -25,12 +24,6 @@ const useStyles = makeStyles({
   },
   section: {
     marginBottom: tokens.spacingVerticalXL,
-  },
-  serviceDateCard: {
-    marginBottom: tokens.spacingVerticalM,
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   actions: {
     display: 'flex',
@@ -51,10 +44,10 @@ export const AdminSurveyManagePage = () => {
   const updateMutation = useUpdateSurvey()
   const deleteServiceDateMutation = useDeleteServiceDate()
 
-  const handleDeleteServiceDate = async (serviceDateId: string) => {
+  const handleDeleteServiceDate = (serviceDateId: string) => {
     if (!id || !confirm('Dienst wirklich löschen?')) return
 
-    await deleteServiceDateMutation.mutateAsync({
+    void deleteServiceDateMutation.mutateAsync({
       surveyId: id,
       serviceDateId,
     })
@@ -106,34 +99,12 @@ export const AdminSurveyManagePage = () => {
         <h2>Dienste</h2>
 
         {survey.dates.map((serviceDate) => (
-          <Card key={serviceDate.id} className={styles.serviceDateCard}>
-            <div>
-              <Text weight="semibold">
-                {new Date(serviceDate.date).toLocaleDateString('de-DE', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </Text>
-              <Text size={300} style={{ display: 'block' }}>
-                {serviceDate.serviceTypeName}
-              </Text>
-            </div>
-
-            <Menu>
-              <MenuTrigger disableButtonEnhancement>
-                <Button icon={<MoreVertical24Regular />} appearance="subtle" />
-              </MenuTrigger>
-              <MenuPopover>
-                <MenuList>
-                  <MenuItem icon={<Delete24Regular />} onClick={() => void handleDeleteServiceDate(serviceDate.id)}>
-                    Löschen
-                  </MenuItem>
-                </MenuList>
-              </MenuPopover>
-            </Menu>
-          </Card>
+          <ServiceDateCard
+            key={serviceDate.id}
+            serviceDate={serviceDate}
+            onDelete={handleDeleteServiceDate}
+            surveyStatus={survey.status}
+          />
         ))}
 
         {survey.dates.length === 0 && (
