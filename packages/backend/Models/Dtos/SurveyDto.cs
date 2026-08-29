@@ -24,6 +24,8 @@ public record SurveyDto(
     string CreatorName,
     string Title,
     string Description,
+    int ServiceId,
+    string ServiceName,
     [property: JsonConverter(typeof(JsonStringEnumConverter))]
     SurveyStatus Status,
     DateTime CreatedAt,
@@ -40,6 +42,8 @@ public record SurveyDto(
 public record CreateSurveyRequest(
     string Title,
     string Description,
+    int ServiceId,
+    string ServiceName,
     List<CreateServiceDateRequest> Dates);
 
 /// <summary>
@@ -64,4 +68,6 @@ public record ActivateSurveyRequest(
 public record CreateServiceDateRequest(
     DateTime Date,
     string ServiceType,
+    int EventId,
+    string EventName,
     string Notes);

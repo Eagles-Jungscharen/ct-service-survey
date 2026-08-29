@@ -8,6 +8,11 @@ export type SurveyRequestStatus = 'draft' | 'inSurvey' | 'closed';
 
 export type SurveyStatus = 'draft' | 'active' | 'closed';
 
+export interface ActivateSurveyRequest {
+  invitedPersonIds: string[];
+  endDate: string;
+}
+
 export interface AssignmentDto {
   assignmentId: string;
   surveyId: string;
@@ -27,12 +32,16 @@ export interface ChurchToolsEventDto {
 export interface CreateServiceDateRequest {
   date: string;
   serviceType: string;
+  eventId: number;
+  eventName: string;
   notes: string;
 }
 
 export interface CreateSurveyRequest {
   title: string;
   description: string;
+  serviceId: number;
+  serviceName: string;
   dates: CreateServiceDateRequest[];
 }
 
@@ -95,6 +104,8 @@ export interface ServiceDateDto {
   date: string;
   serviceType: string;
   serviceTypeName: string;
+  eventId: number;
+  eventName: string;
   notes: string;
 }
 
@@ -125,6 +136,8 @@ export interface SurveyDto {
   creatorName: string;
   title: string;
   description: string;
+  serviceId: number;
+  serviceName: string;
   status: SurveyStatus;
   createdAt: string;
   updatedAt: string;
@@ -140,6 +153,8 @@ export interface SurveyRequestDto {
   creatorName: string;
   title: string;
   description: string;
+  serviceId: number;
+  serviceName: string;
   status: SurveyRequestStatus;
   entries: SurveyRequestEntryDto[];
 }
@@ -154,16 +169,5 @@ export interface UpdateSurveyRequest {
   title: string;
   description: string;
   status: SurveyStatus;
-}
-
-export interface ActivateSurveyRequest {
-  invitedPersonIds: string[];
-  endDate: string;
-}
-
-export interface PersonDto {
-  id: string;
-  name: string;
-  email?: string;
 }
 

@@ -19,6 +19,8 @@ public record SurveyRequestDto(
     string CreatorName,
     string Title,
     string Description,
+    int ServiceId,
+    string ServiceName,
     [property: JsonConverter(typeof(JsonStringEnumConverter))]
     SurveyRequestStatus Status,
     List<SurveyRequestEntryDto> Entries);

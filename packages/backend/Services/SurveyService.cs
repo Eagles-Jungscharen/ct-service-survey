@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Entities;
+using EaglesJungscharen.Azure.ServiceSurvey.Extensions;
 using GuedesPlace.AzureTools.Tables;
-using System.Text.Json;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 
@@ -43,7 +43,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         foreach (var survey in filteredSurveys)
         {
             var dates = await GetServiceDatesForSurveyAsync(survey.SurveyId);
-            result.Add(MapToDto(survey, dates));
+            result.Add(survey.MapToDto(dates));
         }
 
         return result.OrderByDescending(s => s.CreatedAt).ToList();
@@ -55,7 +55,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         {
             var survey = await _surveysTable.GetByIdAsync(surveyId, "Survey");
             var dates = await GetServiceDatesForSurveyAsync(surveyId);
-            return MapToDto(survey.Entity, dates);
+            return survey.Entity.MapToDto(dates);
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {
@@ -74,10 +74,13 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             CreatorId = creatorId,
             CreatorName = creatorName,
             Title = request.Title,
+            ServiceId = request.ServiceId,
+            ServiceName = request.ServiceName,
             Description = request.Description,
             Status = "Draft", // Immer Draft bei Erstellung
             CreatedAt = now,
-            UpdatedAt = now
+            UpdatedAt = now,
+            InvitedPersonIds = [],
         };
 
         await _surveysTable.InsertOrReplaceAsync(surveyId, "Survey", survey);
@@ -90,7 +93,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             dates.Add(date);
         }
 
-        return MapToDto(survey, dates);
+        return survey.MapToDto(dates);
     }
 
     public async Task<SurveyDto?> UpdateSurveyAsync(string surveyId, UpdateSurveyRequest request, string userId, bool isAdmin)
@@ -127,7 +130,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         await _surveysTable.InsertOrMergeAsync(surveyId, "Survey", survey);
 
         var dates = await GetServiceDatesForSurveyAsync(surveyId);
-        return MapToDto(survey, dates);
+        return survey.MapToDto(dates);
     }
 
     public async Task<bool> DeleteSurveyAsync(string surveyId, string userId, bool isAdmin)
@@ -280,13 +283,13 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         survey.Status = "Active";
         survey.AccessTag = accessTag;
         survey.EndDate = request.EndDate.ToUniversalTime();
-        survey.InvitedPersonIds = JsonSerializer.Serialize(request.InvitedPersonIds);
+        survey.InvitedPersonIds = request.InvitedPersonIds;
         survey.UpdatedAt = DateTime.UtcNow;
 
         await _surveysTable.InsertOrMergeAsync(surveyId, "Survey", survey);
 
         var dates = await GetServiceDatesForSurveyAsync(surveyId);
-        return MapToDto(survey, dates);
+        return survey.MapToDto(dates);
     }
 
     public async Task<SurveyDto?> GetSurveyByTagAsync(string tag)
@@ -311,7 +314,7 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         }
 
         var dates = await GetServiceDatesForSurveyAsync(survey.SurveyId);
-        return MapToDto(survey, dates);
+        return survey.MapToDto(dates);
     }
 
     // Private Helper-Methoden
@@ -325,6 +328,8 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
                 date.Date,
                 date.ServiceType,
                 date.ServiceTypeName,
+                date.EventId,
+                date.EventName,
                 date.Notes
             )).ToList();
         return [.. dates.OrderBy(d => d.Date)];
@@ -345,6 +350,8 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             Date = request.Date.ToUniversalTime(),
             ServiceType = request.ServiceType,
             ServiceTypeName = serviceTypeName,
+            EventId = request.EventId,
+            EventName = request.EventName,
             Notes = request.Notes
         };
 
@@ -356,40 +363,9 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             request.Date,
             request.ServiceType,
             serviceTypeName,
+            request.EventId,
+            request.EventName,
             request.Notes
-        );
-    }
-
-    private static SurveyDto MapToDto(SurveyEntity entity, List<ServiceDateDto> dates)
-    {
-        // InvitedPersonIds aus JSON deserialisieren
-        List<string>? invitedPersonIds = null;
-        if (!string.IsNullOrEmpty(entity.InvitedPersonIds))
-        {
-            try
-            {
-                invitedPersonIds = JsonSerializer.Deserialize<List<string>>(entity.InvitedPersonIds);
-            }
-            catch
-            {
-                // Bei Fehler null zurückgeben
-                invitedPersonIds = null;
-            }
-        }
-
-        return new SurveyDto(
-            entity.SurveyId,
-            entity.CreatorId,
-            entity.CreatorName,
-            entity.Title,
-            entity.Description,
-            Enum.Parse<SurveyStatus>(entity.Status),
-            entity.CreatedAt,
-            entity.UpdatedAt,
-            dates,
-            entity.AccessTag,
-            entity.EndDate,
-            invitedPersonIds
         );
     }
 }

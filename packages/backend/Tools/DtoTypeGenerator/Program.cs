@@ -19,6 +19,7 @@ var exportedTypes = new[]
     typeof(SurveyDto),
     typeof(SurveyStatus),
     typeof(ServiceDateDto),
+    typeof(ActivateSurveyRequest),
     typeof(CreateSurveyRequest),
     typeof(UpdateSurveyRequest),
     typeof(CreateServiceDateRequest),
@@ -175,4 +176,4 @@ static void CollectEnumTypes(Type type, HashSet<Type> enumTypes)
         }
         return;
     }
- }
+}

@@ -9,4 +9,6 @@ public record ServiceDateDto(
     DateTime Date,
     string ServiceType,
     string ServiceTypeName,
+    int EventId,
+    string EventName,
     string Notes);

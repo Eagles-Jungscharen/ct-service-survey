@@ -1,14 +1,8 @@
-import type {
-  ActivateSurveyRequest,
-  CreateSurveyRequest,
-  UpdateSurveyRequest,
-  CreateServiceDateRequest,
-  FetchEventsRequest,
-} from '@ct-service-survey/shared'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { ActivateSurveyRequest, CreateSurveyRequest, UpdateSurveyRequest, CreateServiceDateRequest, FetchEventsRequest, } from '@ct-service-survey/shared';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAppAuth } from './useAppAuthContext';
-import { surveysApi } from '../services/api'
+import { surveysApi } from '../services/api';
 
 // Query Keys
 const surveyKeys = {
@@ -18,26 +12,26 @@ const surveyKeys = {
 }
 
 // Alle Umfragen abrufen
-export function useSurveys() {
+export const useSurveys = () => {
   const auth = useAppAuth();
   return useQuery({
     queryKey: surveyKeys.all,
     queryFn: () => surveysApi.getAll(auth.token!),
-  })
+  });
 }
 
 // Einzelne Umfrage abrufen
-export function useSurvey(id: string) {
+export const useSurvey = (id: string) => {
   const auth = useAppAuth();
   return useQuery({
     queryKey: surveyKeys.detail(id),
     queryFn: () => surveysApi.getById(id, auth.token!),
     enabled: !!id,
-  })
+  });
 }
 
 // Umfrage erstellen
-export function useCreateSurvey() {
+export const useCreateSurvey = () => {
   const queryClient = useQueryClient();
   const auth = useAppAuth();
 
@@ -46,11 +40,11 @@ export function useCreateSurvey() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
     },
-  })
+  });
 }
 
 // Umfrage aktualisieren
-export function useUpdateSurvey() {
+export const useUpdateSurvey = () => {
   const queryClient = useQueryClient();
   const auth = useAppAuth();
 
@@ -61,11 +55,11 @@ export function useUpdateSurvey() {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
       void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.id) })
     },
-  })
+  });
 }
 
 // Umfrage löschen
-export function useDeleteSurvey() {
+export const useDeleteSurvey = () => {
   const queryClient = useQueryClient();
   const auth = useAppAuth();
 
@@ -74,11 +68,11 @@ export function useDeleteSurvey() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
     },
-  })
+  });
 }
 
 // ServiceDate hinzufügen
-export function useAddServiceDate() {
+export const useAddServiceDate = () => {
   const queryClient = useQueryClient();
   const auth = useAppAuth();
 
@@ -88,11 +82,11 @@ export function useAddServiceDate() {
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
-  })
+  });
 }
 
 // ServiceDate löschen
-export function useDeleteServiceDate() {
+export const useDeleteServiceDate = () => {
   const queryClient = useQueryClient();
   const auth = useAppAuth();
 
@@ -102,20 +96,20 @@ export function useDeleteServiceDate() {
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
-  })
+  });
 }
 
 // Events aus ChurchTools abrufen (für Survey-Wizard)
-export function useFetchChurchToolsEvents() {
+export const useFetchChurchToolsEvents = () => {
   const auth = useAppAuth();
 
   return useMutation({
     mutationFn: (data: FetchEventsRequest) => surveysApi.fetchEvents(data, auth.token!),
-  })
+  });
 }
 
 // Umfrage aktivieren
-export function useActivateSurvey() {
+export const useActivateSurvey = () => {
   const queryClient = useQueryClient();
   const auth = useAppAuth();
 
@@ -126,15 +120,15 @@ export function useActivateSurvey() {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
       void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
-  })
+  });
 }
 
 // Umfrage anhand TAG abrufen (öffentlich, keine Auth erforderlich)
-export function useSurveyByTag(tag: string) {
+export const useSurveyByTag = (tag: string) => {
   return useQuery({
     queryKey: surveyKeys.byTag(tag),
     queryFn: () => surveysApi.getByTag(tag),
     enabled: !!tag && tag.length === 6,
     retry: false, // Bei 404 nicht wiederholen
-  })
+  });
 }

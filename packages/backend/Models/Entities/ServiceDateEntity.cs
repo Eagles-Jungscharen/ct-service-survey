@@ -13,5 +13,7 @@ public class ServiceDateEntity
     public DateTime Date { get; set; }
     public string ServiceType { get; set; } = string.Empty; // ChurchTools Service-ID
     public string ServiceTypeName { get; set; } = string.Empty;
+    public int EventId { get; set; } = -1;
+    public string EventName { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
 }

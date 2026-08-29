@@ -1,4 +1,4 @@
-import type { ChurchToolsEventDto, CreateSurveyRequest, SurveyDto } from '@ct-service-survey/shared';
+import type { ChurchToolsEventDto, CreateServiceDateRequest, CreateSurveyRequest, SurveyDto } from '@ct-service-survey/shared';
 import { Button, makeStyles, Title3, Subtitle2, Text, tokens } from '@fluentui/react-components';
 import { UseMutationResult } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
@@ -79,17 +79,24 @@ export const Step2Form: React.FunctionComponent<Step2FormProps> = (props: Step2F
   }, [createSurveyMutation.isError, createSurveyMutation.error]);
 
   const handleSubmit = () => {
-    const dates = Array.from(selectedEvents.values()).map((sel) => ({
+    const dates: CreateServiceDateRequest[] = Array.from(selectedEvents.values()).map((sel) => ({
       date: sel.event.startDate,
       serviceType: String(createSurveyFormPayload.serviceId),
+      eventId: sel.event.id,
+      eventName: sel.event.name,
       notes: sel.notes,
     }))
 
     const doSubmit = async () => {
 
+      if (!createSurveyFormPayload.serviceId) {
+        throw new Error('Es muss ein Dienst ausgewählt werden.');
+      }
       const result = await createSurveyMutation.mutateAsync({
         title: createSurveyFormPayload.title,
         description: createSurveyFormPayload.description,
+        serviceId: createSurveyFormPayload.serviceId,
+        serviceName: selectedServiceName,
         dates,
       })
 
