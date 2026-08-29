@@ -153,10 +153,10 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
             throw new UnauthorizedAccessException("Keine Berechtigung zum Löschen dieser Umfrage.");
         }
 
-        // Nur Draft kann gelöscht werden
-        if (survey.Status != "Draft")
+        // Nur Draft und geschlossene Umfragen können gelöscht werden
+        if (survey.Status == "Active")
         {
-            throw new InvalidOperationException("Nur Entwürfe können gelöscht werden.");
+            throw new InvalidOperationException("Nur Entwürfe und geschlossene Umfragen können gelöscht werden.");
         }
 
         // Umfrage löschen
@@ -222,9 +222,9 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         }
 
         // Geschlossene Umfragen können nicht bearbeitet werden
-        if (survey.Status == "Closed")
+        if (survey.Status == "Active")
         {
-            throw new InvalidOperationException("Geschlossene Umfragen können nicht bearbeitet werden.");
+            throw new InvalidOperationException("Aktive Umfragen können nicht gelöscht werden.");
         }
 
         // Termin löschen

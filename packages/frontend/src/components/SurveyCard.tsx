@@ -1,5 +1,5 @@
 import type { SurveyDto } from '@ct-service-survey/shared';
-import { Button, Caption1, Card, CardFooter, CardHeader, Subtitle1, makeStyles, tokens } from '@fluentui/react-components';
+import { Button, Caption1, Card, CardFooter, CardHeader, Subtitle1, makeStyles, tokens, Dialog, DialogSurface, DialogTitle, DialogBody, DialogActions, DialogContent } from '@fluentui/react-components';
 import { CheckmarkRegular, DeleteRegular, OpenRegular } from '@fluentui/react-icons';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -63,6 +63,8 @@ export const SurveyCard = ({ survey }: SurveyCardProps) => {
     const deleteSurvey = useDeleteSurvey();
     const closeSurvey = useCloseSurvey();
 
+    const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+
     const surveyEndDate = useFormattedDate(survey.endDate);
 
     const handleOpen = React.useCallback(() => {
@@ -72,43 +74,68 @@ export const SurveyCard = ({ survey }: SurveyCardProps) => {
     const canBeDeleted = React.useMemo(() => survey.status !== 'active', [survey.status]);
     const canBeClosed = React.useMemo(() => survey.status === 'active', [survey.status]);
 
+    const handleDeleteClick = React.useCallback(() => {
+        setDeleteDialogOpen(true);
+    }, []);
 
-    const handleDelete = React.useCallback(() => {
+    const handleDeleteConfirm = React.useCallback(() => {
         void deleteSurvey.mutateAsync(survey.id);
+        setDeleteDialogOpen(false);
     }, [deleteSurvey, survey.id]);
+
+    const handleDeleteCancel = React.useCallback(() => {
+        setDeleteDialogOpen(false);
+    }, []);
 
     const handleClose = React.useCallback(() => {
         void closeSurvey.mutateAsync({ surveyId: survey.id });
     }, [closeSurvey, survey.id]);
     return (
-        <Card className={styles.card}>
-            <CardHeader
-                header={<Subtitle1>{survey.title}</Subtitle1>}
-                description={<div className={styles.headerDescriptionContainer}>
-                    {surveyEndDate && <Caption1>Endet am: {surveyEndDate}</Caption1>}
-                    <Caption1>Dienst:{survey.serviceName}</Caption1>
-                </div>}
-            />
-            <div>
-                <div>{survey.description}</div>
-                <div className={styles.statusBadgeContainer}>
-                    <span
-                        className={`${styles.statusBadge} ${survey.status === 'draft'
-                            ? styles.statusDraft
-                            : survey.status === 'active'
-                                ? styles.statusActive
-                                : styles.statusClosed
-                            }`}
-                    >
-                        {statusLabels[survey.status]}
-                    </span>
+        <>
+            <Card className={styles.card}>
+                <CardHeader
+                    header={<Subtitle1>{survey.title}</Subtitle1>}
+                    description={<div className={styles.headerDescriptionContainer}>
+                        {surveyEndDate && <Caption1>Endet am: {surveyEndDate}</Caption1>}
+                        <Caption1>Dienst:{survey.serviceName}</Caption1>
+                    </div>}
+                />
+                <div>
+                    <div>{survey.description}</div>
+                    <div className={styles.statusBadgeContainer}>
+                        <span
+                            className={`${styles.statusBadge} ${survey.status === 'draft'
+                                ? styles.statusDraft
+                                : survey.status === 'active'
+                                    ? styles.statusActive
+                                    : styles.statusClosed
+                                }`}
+                        >
+                            {statusLabels[survey.status]}
+                        </span>
+                    </div>
                 </div>
-            </div>
-            <CardFooter>
-                <Button icon={<DeleteRegular />} onClick={handleDelete} disabled={!canBeDeleted}>Löschen</Button>
-                <Button icon={<CheckmarkRegular />} onClick={handleClose} disabled={!canBeClosed}>Abschließen</Button>
-                <Button appearance="primary" icon={<OpenRegular />} onClick={handleOpen}>Öffnen</Button>
-            </CardFooter>
-        </Card>
+                <CardFooter>
+                    <Button icon={<DeleteRegular />} onClick={handleDeleteClick} disabled={!canBeDeleted}>Löschen</Button>
+                    <Button icon={<CheckmarkRegular />} onClick={handleClose} disabled={!canBeClosed}>Abschließen</Button>
+                    <Button appearance="primary" icon={<OpenRegular />} onClick={handleOpen}>Öffnen</Button>
+                </CardFooter>
+            </Card>
+
+            <Dialog open={deleteDialogOpen} onOpenChange={(_, data) => setDeleteDialogOpen(data.open)}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>Umfrage löschen</DialogTitle>
+                        <DialogContent>
+                            Möchten Sie die Umfrage &quot;{survey.title}&quot; wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                        </DialogContent>
+                        <DialogActions>
+                            <Button appearance="secondary" onClick={handleDeleteCancel}>Abbrechen</Button>
+                            <Button appearance="primary" onClick={handleDeleteConfirm}>Löschen</Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+        </>
     );
 };
