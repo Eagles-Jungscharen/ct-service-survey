@@ -1,5 +1,5 @@
 import type { SurveyDto } from '@ct-service-survey/shared';
-import { Button, Field, Input, InputOnChangeData, Spinner, Subtitle1, Textarea, makeStyles, tokens } from '@fluentui/react-components';
+import { Button, Field, Input, InputOnChangeData, Spinner, Subtitle1, Textarea, makeStyles, tokens, Text } from '@fluentui/react-components';
 import React, { useState } from 'react';
 
 import { useUpdateSurvey } from '../../hooks/useSurveys';
@@ -97,6 +97,11 @@ export const SurveyBasicDataSection = (props: SurveyBasicDataSectionProps) => {
             <div className={styles.actionBar}>
                 <Button icon={processIcon} appearance="primary" onClick={handleUpdate} disabled={updateMutation.isPending || isNotDirty}>Aktualisieren</Button>
             </div>
+            {updateMutation.isError && (
+                <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
+                    Fehler: {updateMutation.error.message}
+                </Text>
+            )}
         </div>
     );
 };

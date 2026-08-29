@@ -41,7 +41,7 @@ export const AdminSurveyManagePage = () => {
   const styles = useStyles()
   const { id } = useParams<{ id: string }>()
   const { data: survey, isLoading } = useSurvey(id!)
-  const updateMutation = useUpdateSurvey()
+
   const deleteServiceDateMutation = useDeleteServiceDate()
 
   const handleDeleteServiceDate = (serviceDateId: string) => {
@@ -117,12 +117,6 @@ export const AdminSurveyManagePage = () => {
           <Button>Zu Einteilungen</Button>
         </Link>
       </div>
-
-      {updateMutation.isError && (
-        <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
-          Fehler: {updateMutation.error.message}
-        </Text>
-      )}
     </div>
   )
 }
