@@ -55,7 +55,13 @@ class ApiClient {
       throw new ApiError(errorMessage, errorCode)
     }
 
-    return await response.json() as T;
+    // Nur JSON parsen, wenn Response JSON enthält
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      return await response.json() as T;
+    }
+
+    return undefined as T;
   }
 
   async get<T>(endpoint: string, token: string | undefined): Promise<T> {

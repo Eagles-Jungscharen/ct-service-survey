@@ -1,9 +1,11 @@
 import type { SurveyDto } from '@ct-service-survey/shared';
-import { Card, CardHeader, Caption1, Subtitle1, makeStyles, tokens } from '@fluentui/react-components';
+import { Button, Caption1, Card, CardFooter, CardHeader, Subtitle1, makeStyles, tokens } from '@fluentui/react-components';
+import { CheckmarkRegular, DeleteRegular, OpenRegular } from '@fluentui/react-icons';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { useFormattedDate } from '../hooks/useFormattedDate';
+import { useDeleteSurvey } from '../hooks/useSurveys';
 
 const useStyles = makeStyles({
     card: {
@@ -11,6 +13,9 @@ const useStyles = makeStyles({
         ':hover': {
             boxShadow: tokens.shadow8,
         },
+    },
+    statusBadgeContainer: {
+        marginTop: tokens.spacingVerticalM,
     },
     statusBadge: {
         display: 'inline-block',
@@ -31,6 +36,14 @@ const useStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground3,
         color: tokens.colorNeutralForeground3,
     },
+    headerDescriptionContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXS,
+    },
+    linkNoDecoration: {
+        textDecoration: 'none',
+    },
 });
 
 const statusLabels: Record<SurveyDto['status'], string> = {
@@ -45,35 +58,50 @@ interface SurveyCardProps {
 
 export const SurveyCard = ({ survey }: SurveyCardProps) => {
     const styles = useStyles();
+    const navigate = useNavigate();
+    const deleteSurvey = useDeleteSurvey();
 
     const surveyEndDate = useFormattedDate(survey.endDate);
 
+    const handleOpen = React.useCallback(() => {
+        void navigate(`/admin/surveys/${survey.id}`);
+    }, [navigate, survey.id]);
+
+    const canBeDeleted = React.useMemo(() => survey.status !== 'active', [survey.status]);
+
+    const handleDelete = React.useCallback(() => {
+        void deleteSurvey.mutateAsync(survey.id);
+    }, [deleteSurvey, survey.id]);
+
     return (
-        <Link
-            to={`/admin/surveys/${survey.id}`}
-            style={{ textDecoration: 'none' }}
-        >
-            <Card className={styles.card}>
-                <CardHeader
-                    header={<Subtitle1>{survey.title}</Subtitle1>}
-                    description={<div>{surveyEndDate && <Caption1>Endet am: {surveyEndDate}</Caption1>}<Caption1>{survey.serviceName}</Caption1></div>}
-                />
-                <p>
-                    {survey.description}
-                    <div style={{ marginTop: '8px' }}>
-                        <span
-                            className={`${styles.statusBadge} ${survey.status === 'draft'
-                                ? styles.statusDraft
-                                : survey.status === 'active'
-                                    ? styles.statusActive
-                                    : styles.statusClosed
-                                }`}
-                        >
-                            {statusLabels[survey.status]}
-                        </span>
-                    </div>
-                </p>
-            </Card>
-        </Link>
+        <Card className={styles.card}>
+            <CardHeader
+                header={<Subtitle1>{survey.title}</Subtitle1>}
+                description={<div className={styles.headerDescriptionContainer}>
+                    {surveyEndDate && <Caption1>Endet am: {surveyEndDate}</Caption1>}
+                    <Caption1>Dienst:{survey.serviceName}</Caption1>
+                </div>}
+            />
+            <div>
+                <div>{survey.description}</div>
+                <div className={styles.statusBadgeContainer}>
+                    <span
+                        className={`${styles.statusBadge} ${survey.status === 'draft'
+                            ? styles.statusDraft
+                            : survey.status === 'active'
+                                ? styles.statusActive
+                                : styles.statusClosed
+                            }`}
+                    >
+                        {statusLabels[survey.status]}
+                    </span>
+                </div>
+            </div>
+            <CardFooter>
+                <Button icon={<DeleteRegular />} onClick={handleDelete} disabled={!canBeDeleted}>Löschen</Button>
+                <Button icon={<CheckmarkRegular />}>Abschließen</Button>
+                <Button appearance="primary" icon={<OpenRegular />} onClick={handleOpen}>Öffnen</Button>
+            </CardFooter>
+        </Card>
     );
 };
