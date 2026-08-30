@@ -11,7 +11,7 @@ const responseKeys = {
 }
 
 // Eigene Antworten für eine Umfrage abrufen
-export function useMyResponses(surveyId: string) {
+export const useMyResponses = (surveyId: string) => {
   const auth = useAppAuth();
   return useQuery({
     queryKey: responseKeys.myResponses(surveyId),
@@ -21,7 +21,7 @@ export function useMyResponses(surveyId: string) {
 }
 
 // Alle Antworten für eine Umfrage abrufen (Admin)
-export function useAllResponses(surveyId: string) {
+export const useAllResponses = (surveyId: string) => {
   const auth = useAppAuth();
   return useQuery({
     queryKey: responseKeys.allResponses(surveyId),
@@ -31,7 +31,7 @@ export function useAllResponses(surveyId: string) {
 }
 
 // Antworten absenden
-export function useSubmitResponses() {
+export const useSubmitResponses = () => {
   const queryClient = useQueryClient()
   const auth = useAppAuth();
 

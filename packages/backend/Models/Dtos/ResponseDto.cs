@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 
 /// <summary>
@@ -11,6 +13,18 @@ public enum AvailabilityStatus
     Maybe
 }
 
+public enum ResponseAnswerState
+{
+    NotAnswered,
+    InEditing,
+    Answered,
+}
+
+public record ResponseAnswerStateDto(
+    string SurveyId,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
+    ResponseAnswerState State);
+
 /// <summary>
 /// DTO für eine einzelne Rückmeldung (User × Termin)
 /// </summary>
@@ -20,6 +34,7 @@ public record ResponseDto(
     string ServiceDateId,
     string UserId,
     string UserName,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     AvailabilityStatus Availability,
     string Remarks,
     DateTime CreatedAt,
@@ -30,6 +45,8 @@ public record ResponseDto(
 /// </summary>
 public record SubmitResponsesRequest(
     string SurveyId,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
+    ResponseAnswerState State,
     List<ServiceDateResponseRequest> Responses);
 
 /// <summary>
@@ -37,5 +54,6 @@ public record SubmitResponsesRequest(
 /// </summary>
 public record ServiceDateResponseRequest(
     string ServiceDateId,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     AvailabilityStatus Availability,
     string Remarks);

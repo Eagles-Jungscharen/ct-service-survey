@@ -4,6 +4,8 @@
 
 export type AvailabilityStatus = 'unknown' | 'yes' | 'no' | 'maybe';
 
+export type ResponseAnswerState = 'notAnswered' | 'inEditing' | 'answered';
+
 export type SurveyRequestStatus = 'draft' | 'inSurvey' | 'closed';
 
 export type SurveyStatus = 'draft' | 'active' | 'closed';
@@ -133,6 +135,7 @@ export interface SubmitAssignmentsRequest {
 
 export interface SubmitResponsesRequest {
   surveyId: string;
+  state: ResponseAnswerState;
   responses: ServiceDateResponseRequest[];
 }
 

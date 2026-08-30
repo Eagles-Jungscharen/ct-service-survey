@@ -21,4 +21,7 @@ public interface IResponseService
     /// Speichert Rückmeldungen eines Users für alle Termine einer Umfrage (Bulk)
     /// </summary>
     Task<List<ResponseDto>> SubmitResponsesAsync(SubmitResponsesRequest request, string userId, string userName);
+
+    Task<ResponseAnswerStateDto> GetResponseAnswerStateAsync(string surveyId, string userId);
+    Task<ResponseAnswerStateDto> SubmitResponseAnswerStateAsync(string surveyId, string userId, ResponseAnswerState state);
 }

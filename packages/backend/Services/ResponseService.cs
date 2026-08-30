@@ -10,7 +10,8 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Services;
 /// </summary>
 public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureTableClientService tableService) : IResponseService
 {
-    private readonly TypedAzureTableClient<ResponseEntity>  _responsesTable = tableService.GetTypedTableClient<ResponseEntity>();
+    private readonly TypedAzureTableClient<ResponseEntity> _responsesTable = tableService.GetTypedTableClient<ResponseEntity>();
+    private readonly TypedAzureTableClient<ResponseAnswerStateEntity> _responsesAnswerStateTable = tableService.GetTypedTableClient<ResponseAnswerStateEntity>();
 
 
     public async Task<List<ResponseDto>> GetResponsesAsync(string surveyId, string userId)
@@ -59,7 +60,7 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
                 existingResponse.Availability = responseRequest.Availability.ToString();
                 existingResponse.Remarks = responseRequest.Remarks;
                 existingResponse.UpdatedAt = now;
-                await _responsesTable.InsertOrMergeAsync(rowKey, request.SurveyId,existingResponse);
+                await _responsesTable.InsertOrMergeAsync(rowKey, request.SurveyId, existingResponse);
                 results.Add(MapToDto(existingResponse));
             }
             else
@@ -84,6 +85,71 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
         }
 
         return results;
+    }
+
+    public async Task<ResponseAnswerStateDto> GetResponseAnswerStateAsync(string surveyId, string userId)
+    {
+        var rowKey = $"{userId}_{surveyId}";
+        ResponseAnswerStateEntity? entity = null;
+        try
+        {
+            var response = await _responsesAnswerStateTable.GetByIdAsync(rowKey, surveyId);
+            entity = response.Entity;
+        }
+        catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            // Noch kein Eintrag vorhanden
+        }
+
+        if (entity == null)
+        {
+            return new ResponseAnswerStateDto(
+                surveyId,
+                ResponseAnswerState.NotAnswered
+            );
+        }
+
+        return new ResponseAnswerStateDto(
+            surveyId,
+            entity.State
+        );
+    }
+
+    public async Task<ResponseAnswerStateDto> SubmitResponseAnswerStateAsync(string surveyId, string userId, ResponseAnswerState state)
+    {
+        var rowKey = $"{userId}_{surveyId}";
+        ResponseAnswerStateEntity? entity = null;
+        try
+        {
+            var response = await _responsesAnswerStateTable.GetByIdAsync(rowKey, surveyId);
+            entity = response.Entity;
+        }
+        catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            // Noch kein Eintrag vorhanden
+        }
+
+        if (entity == null)
+        {
+            entity = new ResponseAnswerStateEntity
+            {
+                ResponseAnswerStateId = rowKey,
+                SurveyId = surveyId,
+                UserId = userId,
+                State = state
+            };
+            await _responsesAnswerStateTable.InsertOrReplaceAsync(rowKey, surveyId, entity);
+        }
+        else
+        {
+            entity.State = state;
+            await _responsesAnswerStateTable.InsertOrMergeAsync(rowKey, surveyId, entity);
+        }
+
+        return new ResponseAnswerStateDto(
+            surveyId,
+            entity.State
+        );
     }
 
     private static ResponseDto MapToDto(ResponseEntity entity)

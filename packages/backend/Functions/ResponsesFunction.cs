@@ -4,16 +4,18 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
-using System.Text.Json;
 using EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 using EaglesJungscharen.Azure.ServiceSurvey.Services;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Functions;
 
 public class ResponsesFunction(
     ILogger<ResponsesFunction> logger,
     IResponseService responseService,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    IMemoryCache cache,
+    IMeService meService) : AbstractFunctionBase(logger, cache, meService)
 {
     private readonly ILogger<ResponsesFunction> _logger = logger;
     private readonly IResponseService _responseService = responseService;
@@ -29,27 +31,23 @@ public class ResponsesFunction(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "surveys/{surveyId}/responses/me")] HttpRequest req,
         string surveyId)
     {
-        try
+        return await ExecuteAsync(req, async (request, meDto) =>
         {
-            var userInfo = GetUserFromClaims(req.HttpContext.User);
-            if (userInfo == null)
+            try
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
+                var userId = meDto.UserId;
+                var responses = await _responseService.GetResponsesAsync(surveyId, userId);
+                return new OkObjectResult(responses);
             }
-
-            var (userId, displayName, isAdmin) = userInfo.Value;
-
-            var responses = await _responseService.GetResponsesAsync(surveyId, userId);
-            return new OkObjectResult(responses);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der eigenen Rückmeldungen für Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen.", 5000))
+            catch (Exception ex)
             {
-                StatusCode = 500
-            };
-        }
+                _logger.LogError(ex, "Fehler beim Abrufen der eigenen Rückmeldungen für Umfrage {SurveyId}.", surveyId);
+                return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen.", 5000))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
     }
 
     [Function("GetAllResponses")]
@@ -57,73 +55,81 @@ public class ResponsesFunction(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "surveys/{surveyId}/responses")] HttpRequest req,
         string surveyId)
     {
-        try
+        return await ExecuteAsync(req, async (request, meDto) =>
         {
-            var userInfo = GetUserFromClaims(req.HttpContext.User);
-            if (userInfo == null)
+            try
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
+                var responses = await _responseService.GetAllResponsesForSurveyAsync(surveyId);
+                return new OkObjectResult(responses);
             }
-
-            var (userId, displayName, isAdmin) = userInfo.Value;
-
-            if (!isAdmin)
+            catch (Exception ex)
             {
-                return new ObjectResult(new ErrorRecord("Keine Berechtigung zum Abrufen aller Rückmeldungen.", 1003))
+                _logger.LogError(ex, "Fehler beim Abrufen aller Rückmeldungen für Umfrage {SurveyId}.", surveyId);
+                return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen.", 5000))
                 {
-                    StatusCode = 403
+                    StatusCode = 500
                 };
             }
-
-            var responses = await _responseService.GetAllResponsesForSurveyAsync(surveyId);
-            return new OkObjectResult(responses);
-        }
-        catch (Exception ex)
+        });
+    }
+    [Function("GetResponseAnswerState")]
+    public async Task<IActionResult> GetResponseAnswerState(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "surveys/{surveyId}/responses/me/state")] HttpRequest req,
+        string surveyId)
+    {
+        return await ExecuteAsync(req, async (request, meDto) =>
         {
-            _logger.LogError(ex, "Fehler beim Abrufen aller Rückmeldungen für Umfrage {SurveyId}.", surveyId);
-            return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Rückmeldungen.", 5000))
+            try
             {
-                StatusCode = 500
-            };
-        }
+                var userId = meDto.UserId;
+                var responseAnswerState = await _responseService.GetResponseAnswerStateAsync(surveyId, userId);
+                return new OkObjectResult(responseAnswerState);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Abrufen des Antwortstatus für Umfrage {SurveyId}.", surveyId);
+                return new ObjectResult(new ErrorRecord("Fehler beim Abrufen des Antwortstatus.", 5000))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
     }
 
     [Function("SubmitResponses")]
     public async Task<IActionResult> SubmitResponses(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "responses")] HttpRequest req)
     {
-        try
+        return await ExecuteAsync(req, async (request, meDto) =>
         {
-            var userInfo = GetUserFromClaims(req.HttpContext.User);
-            if (userInfo == null)
+
+            try
             {
-                return new UnauthorizedObjectResult(new ErrorRecord("Authentifizierung erforderlich.", 1001));
+
+                var responseRequest = await req.ReadFromJsonAsync<SubmitResponsesRequest>();
+                if (responseRequest == null)
+                {
+                    return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
+                }
+
+                // Validierung
+                if (responseRequest.Responses == null || responseRequest.Responses.Count == 0)
+                {
+                    return new BadRequestObjectResult(new ErrorRecord("Mindestens eine Rückmeldung muss angegeben werden.", 2004));
+                }
+
+                var responses = await _responseService.SubmitResponsesAsync(responseRequest, meDto.UserId, meDto.DisplayName);
+                await _responseService.SubmitResponseAnswerStateAsync(responseRequest.SurveyId, meDto.UserId, responseRequest.State);
+                return new OkObjectResult(responses);
             }
-
-            var (userId, displayName, isAdmin) = userInfo.Value;
-
-            var request = await JsonSerializer.DeserializeAsync<SubmitResponsesRequest>(req.Body);
-            if (request == null)
+            catch (Exception ex)
             {
-                return new BadRequestObjectResult(new ErrorRecord("Ungültige Anfrage.", 2001));
+                _logger.LogError(ex, "Fehler beim Speichern der Rückmeldungen.");
+                return new ObjectResult(new ErrorRecord("Fehler beim Speichern der Rückmeldungen.", 5004))
+                {
+                    StatusCode = 500
+                };
             }
-
-            // Validierung
-            if (request.Responses == null || request.Responses.Count == 0)
-            {
-                return new BadRequestObjectResult(new ErrorRecord("Mindestens eine Rückmeldung muss angegeben werden.", 2004));
-            }
-
-            var responses = await _responseService.SubmitResponsesAsync(request, userId, displayName);
-            return new OkObjectResult(responses);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Speichern der Rückmeldungen.");
-            return new ObjectResult(new ErrorRecord("Fehler beim Speichern der Rückmeldungen.", 5004))
-            {
-                StatusCode = 500
-            };
-        }
+        });
     }
 }

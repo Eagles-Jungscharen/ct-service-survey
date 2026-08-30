@@ -59,6 +59,7 @@ var surveyTableService = new ExtendedAzureTableClientService(surveyStorageConnec
 var surveysTable = surveyTableService.CreateAndRegisterTableClient<SurveyEntity>("Surveys");
 var serviceDatesTable = surveyTableService.CreateAndRegisterTableClient<ServiceDateEntity>("ServiceDates");
 var responsesTable = surveyTableService.CreateAndRegisterTableClient<ResponseEntity>("Responses");
+var responsesAnswerStateTable = surveyTableService.CreateAndRegisterTableClient<ResponseAnswerStateEntity>("ResponsesAnswerState");
 var assignmentsTable = surveyTableService.CreateAndRegisterTableClient<AssignmentEntity>("Assignments");
 var servicesTable = surveyTableService.CreateAndRegisterTableClient<ServiceEntity>("Services");
 
