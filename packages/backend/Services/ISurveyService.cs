@@ -13,6 +13,11 @@ public interface ISurveyService
     Task<List<SurveyDto>> GetSurveysAsync(string userId, bool isAdmin, SurveyStatus? statusFilter = null);
 
     /// <summary>
+    /// Ruft nur Umfragen ab, zu denen der User eingeladen ist (invitedPersonIds)
+    /// </summary>
+    Task<List<SurveyDto>> GetInvitedSurveysAsync(string userId);
+
+    /// <summary>
     /// Ruft eine einzelne Umfrage ab
     /// </summary>
     Task<SurveyDto?> GetSurveyByIdAsync(string surveyId);

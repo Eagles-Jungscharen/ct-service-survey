@@ -23,6 +23,27 @@ public class SurveysFunction(ILogger<SurveysFunction> logger, ISurveyService sur
         return UserContextHelper.GetUserFromClaims(user, _configuration);
     }
 
+    [Function("GetInvitedSurveys")]
+    public async Task<IActionResult> GetInvitedSurveys([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "surveys/invited")] HttpRequest req)
+    {
+        return await ExecuteAsync(req, async (request, meDto) =>
+        {
+            try
+            {
+                var surveys = await _surveyService.GetInvitedSurveysAsync(meDto.UserId);
+                return new OkObjectResult(surveys);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Abrufen der eingeladenen Umfragen für User {UserId}.", meDto.UserId);
+                return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der eingeladenen Umfragen.", 5000))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
+    }
+
     [Function("GetSurveys")]
     public async Task<IActionResult> GetSurveys([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "surveys")] HttpRequest req)
     {

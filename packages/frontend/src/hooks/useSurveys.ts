@@ -7,6 +7,7 @@ import { surveysApi } from '../services/api';
 // Query Keys
 const surveyKeys = {
   all: ['surveys'] as const,
+  invited: ['surveys', 'invited'] as const,
   detail: (id: string) => ['surveys', id] as const,
   byTag: (tag: string) => ['surveys', 'by-tag', tag] as const,
 }
@@ -17,6 +18,15 @@ export const useSurveys = () => {
   return useQuery({
     queryKey: surveyKeys.all,
     queryFn: () => surveysApi.getAll(auth.token!),
+  });
+}
+
+// Nur eingeladene Umfragen abrufen (invitedPersonIds enthält userId)
+export const useInvitedSurveys = () => {
+  const auth = useAppAuth();
+  return useQuery({
+    queryKey: surveyKeys.invited,
+    queryFn: () => surveysApi.getInvited(auth.token!),
   });
 }
 
@@ -39,6 +49,7 @@ export const useCreateSurvey = () => {
     mutationFn: (data: CreateSurveyRequest) => surveysApi.create(data, auth.token!),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.invited })
     },
   });
 }
@@ -53,6 +64,7 @@ export const useUpdateSurvey = () => {
       surveysApi.update(id, data, auth.token!),
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.invited })
       void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.id) })
     },
   });
@@ -67,6 +79,7 @@ export const useDeleteSurvey = () => {
     mutationFn: (id: string) => surveysApi.delete(id, auth.token!),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.invited })
     },
   });
 }
@@ -118,6 +131,7 @@ export const useActivateSurvey = () => {
       surveysApi.activate(surveyId, data, auth.token!),
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.invited })
       void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
   });
@@ -133,6 +147,7 @@ export const useCloseSurvey = () => {
       surveysApi.close(surveyId, auth.token!),
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: surveyKeys.all })
+      void queryClient.invalidateQueries({ queryKey: surveyKeys.invited })
       void queryClient.invalidateQueries({ queryKey: surveyKeys.detail(variables.surveyId) })
     },
   });

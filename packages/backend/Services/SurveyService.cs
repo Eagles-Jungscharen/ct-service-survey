@@ -49,6 +49,33 @@ public class SurveyService([FromKeyedServices("SurveyStorage")] ExtendedAzureTab
         return result.OrderByDescending(s => s.CreatedAt).ToList();
     }
 
+    public async Task<List<SurveyDto>> GetInvitedSurveysAsync(string userId)
+    {
+        // Alle Umfragen abrufen
+        var surveysEntries = await _surveysTable.GetAllAsync("Survey");
+        var surveys = surveysEntries.Where(s => s.Entity != null).Select(s => s.Entity).ToList();
+
+        // Filtern nach Status (nur Active und Closed) und ob User eingeladen ist
+        var filteredSurveys = surveys.Where(s =>
+        {
+            // Nur Active und Closed Umfragen
+            if (s.Status != "Active" && s.Status != "Closed") return false;
+
+            // Prüfen ob User in InvitedPersonIds enthalten ist
+            return s.InvitedPersonIds != null && s.InvitedPersonIds.Contains(userId);
+        });
+
+        // Für jede Umfrage die Termine laden
+        var result = new List<SurveyDto>();
+        foreach (var survey in filteredSurveys)
+        {
+            var dates = await GetServiceDatesForSurveyAsync(survey.SurveyId);
+            result.Add(survey.MapToDto(dates));
+        }
+
+        return result.OrderByDescending(s => s.CreatedAt).ToList();
+    }
+
     public async Task<SurveyDto?> GetSurveyByIdAsync(string surveyId)
     {
         try

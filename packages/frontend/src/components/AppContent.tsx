@@ -11,6 +11,7 @@ import { CallbackPage } from '../pages/CallbackPage'
 import { CreateSurveyWizard } from '../pages/CreateSurveyWizard'
 import { HomePage } from '../pages/HomePage'
 import { MyAssignmentsPage } from '../pages/MyAssignmentsPage'
+import { MySurveysListPage } from '../pages/MySurveysListPage'
 import { SurveyByTagPage } from '../pages/SurveyByTagPage'
 import { SurveyDetailPage } from '../pages/SurveyDetailPage'
 import { SurveyResponsePage } from '../pages/SurveyResponsePage'
@@ -109,7 +110,7 @@ export const AppContent: React.FunctionComponent = () => {
               path="/surveys"
               element={
                 <ProtectedRoute>
-                  <SurveysListPage />
+                  <MySurveysListPage />
                 </ProtectedRoute>
               }
             />

@@ -6,6 +6,9 @@ export const surveysApi = {
   // Alle Umfragen abrufen
   getAll: (token: string) => apiClient.get<SurveyDto[]>('/api/surveys', token),
 
+  // Nur eingeladene Umfragen abrufen (invitedPersonIds enthält userId)
+  getInvited: (token: string) => apiClient.get<SurveyDto[]>('/api/surveys/invited', token),
+
   // Einzelne Umfrage abrufen
   getById: (id: string, token: string) => apiClient.get<SurveyDto>(`/api/surveys/${id}`, token),
 

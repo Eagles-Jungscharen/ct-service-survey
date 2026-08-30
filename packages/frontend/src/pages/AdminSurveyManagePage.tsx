@@ -8,7 +8,7 @@ import { ActivateSurveySection } from '../components/adminSurveyManagePage/Activ
 import { SurveyAccessSection } from '../components/adminSurveyManagePage/SurveyAccessSection';
 import { SurveyBasicDataSection } from '../components/adminSurveyManagePage/SurveyBasicDataSection';
 import { ServiceDateCard } from '../components/ServiceDateCard';
-import { useSurvey, useUpdateSurvey, useDeleteServiceDate } from '../hooks/useSurveys';
+import { useSurvey, useDeleteServiceDate } from '../hooks/useSurveys';
 
 const useStyles = makeStyles({
   container: {
