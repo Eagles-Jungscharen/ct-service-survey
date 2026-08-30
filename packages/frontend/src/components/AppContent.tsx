@@ -101,11 +101,10 @@ export const AppContent: React.FunctionComponent = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/auth/callback" element={<CallbackPage />} />
 
-            {/* Öffentliche TAG-basierte Umfragen-Zugriff */}
-            <Route path="/survey" element={<SurveyByTagPage />} />
-            <Route path="/survey/:tag" element={<SurveyByTagPage />} />
 
             {/* Öffentliche/Geschützte Routen */}
+            <Route path="/survey" element={<ProtectedRoute><SurveyByTagPage /></ProtectedRoute>} />
+            <Route path="/survey/:tag" element={<ProtectedRoute><SurveyByTagPage /></ProtectedRoute>} />
             <Route
               path="/surveys"
               element={

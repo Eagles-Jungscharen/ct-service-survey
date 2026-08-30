@@ -141,9 +141,10 @@ export const useCloseSurvey = () => {
 
 // Umfrage anhand TAG abrufen (öffentlich, keine Auth erforderlich)
 export const useSurveyByTag = (tag: string) => {
+  const auth = useAppAuth();
   return useQuery({
     queryKey: surveyKeys.byTag(tag),
-    queryFn: () => surveysApi.getByTag(tag),
+    queryFn: () => surveysApi.getByTag(tag, auth.token!),
     enabled: !!tag && tag.length === 6,
     retry: false, // Bei 404 nicht wiederholen
   });

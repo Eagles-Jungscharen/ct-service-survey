@@ -40,6 +40,6 @@ export const surveysApi = {
   close: (surveyId: string, token: string) =>
     apiClient.post<SurveyDto>(`/api/surveys/${surveyId}/close`, token),
 
-  // Umfrage anhand TAG abrufen (öffentlich)
-  getByTag: (tag: string) => apiClient.get<SurveyDto>(`/api/surveys/by-tag/${tag}`, ''),
+  // Umfrage anhand TAG abrufen
+  getByTag: (tag: string, token: string) => apiClient.get<SurveyDto>(`/api/surveys/by-tag/${tag}`, token),
 }
