@@ -10,21 +10,14 @@ using EaglesJungscharen.Azure.ServiceSurvey.Services;
 
 namespace EaglesJungscharen.Azure.ServiceSurvey.Functions;
 
-public class ResponsesFunction
+public class ResponsesFunction(
+    ILogger<ResponsesFunction> logger,
+    IResponseService responseService,
+    IConfiguration configuration)
 {
-    private readonly ILogger<ResponsesFunction> _logger;
-    private readonly IResponseService _responseService;
-    private readonly IConfiguration _configuration;
-
-    public ResponsesFunction(
-        ILogger<ResponsesFunction> logger,
-        IResponseService responseService,
-        IConfiguration configuration)
-    {
-        _logger = logger;
-        _responseService = responseService;
-        _configuration = configuration;
-    }
+    private readonly ILogger<ResponsesFunction> _logger = logger;
+    private readonly IResponseService _responseService = responseService;
+    private readonly IConfiguration _configuration = configuration;
 
     private (string userId, string displayName, bool isAdmin)? GetUserFromClaims(ClaimsPrincipal? user)
     {
