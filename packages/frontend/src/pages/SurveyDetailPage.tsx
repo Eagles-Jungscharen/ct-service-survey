@@ -1,16 +1,9 @@
 import type { SurveyDto } from '@ct-service-survey/shared'
-import {
-  Button,
-  Spinner,
-  Text,
-  makeStyles,
-  tokens,
-  Card,
-  CardHeader,
-} from '@fluentui/react-components'
+import { Button, Spinner, Text, makeStyles, tokens, } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
 import { useParams, Link } from 'react-router-dom'
 
+import { ResponseServiceDateCard } from '../components/ResponseServiceDateCard'
 import { useMyResponses } from '../hooks/useResponses'
 import { useSurvey } from '../hooks/useSurveys'
 
@@ -36,9 +29,6 @@ const useStyles = makeStyles({
   },
   section: {
     marginBottom: tokens.spacingVerticalXL,
-  },
-  serviceDateCard: {
-    marginBottom: tokens.spacingVerticalM,
   },
 })
 
@@ -99,33 +89,14 @@ export function SurveyDetailPage() {
           const myResponse = responseMap.get(serviceDate.id)
 
           return (
-            <Card key={serviceDate.id} className={styles.serviceDateCard}>
-              <CardHeader
-                header={
-                  <Text weight="semibold">
-                    {new Date(serviceDate.date).toLocaleDateString('de-DE', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </Text>
-                }
-                description={
-                  <div>
-                    <Text>{serviceDate.serviceTypeName}</Text>
-                    {serviceDate.notes && (
-                      <Text size={200}>{serviceDate.notes}</Text>
-                    )}
-                    {myResponse && (
-                      <Text size={200} weight="semibold">
-                        Deine Antwort: {myResponse}
-                      </Text>
-                    )}
-                  </div>
-                }
-              />
-            </Card>
+            <ResponseServiceDateCard
+              key={serviceDate.id}
+              serviceDate={serviceDate}
+              myResponse={myResponse ?? 'unknown'}
+              onResponseChange={(newResponse) => {
+                responseMap.set(serviceDate.id, newResponse)
+              }}
+            />
           )
         })}
         {survey.dates.length === 0 && (

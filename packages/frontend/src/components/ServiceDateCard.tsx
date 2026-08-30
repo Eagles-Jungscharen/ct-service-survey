@@ -21,9 +21,6 @@ export const ServiceDateCard = (props: ServiceDateCardProps) => {
     const handleDelete = React.useCallback(() => {
         void onDelete(serviceDate.id);
     }, [onDelete, serviceDate.id]);
-    console.log('Rendering ServiceDateCard for serviceDate.id:', serviceDate.id);
-    console.log('Formatted date:', formattedDate);
-    console.log('Formatted time:', formattedTime);
 
     return (
         <Card>
