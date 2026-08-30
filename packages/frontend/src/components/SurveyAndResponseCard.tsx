@@ -1,10 +1,11 @@
 import type { SurveyDto } from '@ct-service-survey/shared';
-import { Button, Caption1, Card, CardFooter, CardHeader, Subtitle1, makeStyles, tokens } from '@fluentui/react-components';
+import { Body1, Button, Caption1, Card, CardFooter, CardHeader, Subtitle1, makeStyles, tokens } from '@fluentui/react-components';
 import { TextBulletListSquareSparkleRegular } from '@fluentui/react-icons';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useFormattedDate } from '../hooks/useFormattedDate';
+import { useMyResponsesAnswerState } from '../hooks/useResponses';
 
 const useStyles = makeStyles({
     card: {
@@ -63,6 +64,21 @@ export const SurveyAndResponseCard = (props: SurveyAndResponseCardProps) => {
 
     const surveyEndDate = useFormattedDate(survey.endDate);
 
+    const { data: myResponsesAnswerState } = useMyResponsesAnswerState(survey.id);
+
+    const processStatusText = React.useMemo(() => {
+        if (!myResponsesAnswerState) {
+            return '';
+        }
+        if (myResponsesAnswerState?.state === 'answered') {
+            return 'Du hast bereits geantwortet';
+        }
+        if (myResponsesAnswerState?.state === 'inEditing') {
+            return 'Du hast die Umfrage als Entwurf gespeichert';
+        }
+        return 'Du hast noch nicht geantwortet';
+    }, [myResponsesAnswerState]);
+
     const handleOpen = React.useCallback(() => {
         void navigate(`/surveys/${survey.id}`);
     }, [navigate, survey.id]);
@@ -79,6 +95,7 @@ export const SurveyAndResponseCard = (props: SurveyAndResponseCardProps) => {
                 />
                 <div>
                     <div>{survey.description}</div>
+                    <div><Body1>{processStatusText}</Body1></div>
                     <div className={styles.statusBadgeContainer}>
                         <span
                             className={`${styles.statusBadge} ${survey.status === 'draft'

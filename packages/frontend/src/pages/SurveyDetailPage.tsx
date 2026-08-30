@@ -1,5 +1,5 @@
 import type { AvailabilityStatus, ResponseDto, ServiceDateResponseRequest, SurveyDto } from '@ct-service-survey/shared'
-import { Button, Spinner, Text, makeStyles, tokens, } from '@fluentui/react-components'
+import { Badge, Body1, Button, MessageBar, MessageBarBody, MessageBarTitle, Spinner, Subtitle1, Text, Title1, makeStyles, tokens, } from '@fluentui/react-components'
 import { ArrowLeft24Regular } from '@fluentui/react-icons'
 import React from 'react'
 import { useParams, Link } from 'react-router-dom'
@@ -15,7 +15,10 @@ const useStyles = makeStyles({
     margin: '0 auto',
   },
   header: {
+    marginTop: tokens.spacingVerticalM,
     marginBottom: tokens.spacingVerticalXL,
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   backButton: {
     marginBottom: tokens.spacingVerticalM,
@@ -31,6 +34,9 @@ const useStyles = makeStyles({
   section: {
     marginBottom: tokens.spacingVerticalXL,
   },
+  description: {
+    marginBottom: tokens.spacingVerticalM,
+  },
   actionButtons: {
     marginTop: tokens.spacingVerticalXL,
     display: 'flex',
@@ -45,7 +51,7 @@ const statusLabels: Record<SurveyDto['status'], string> = {
   closed: 'Geschlossen',
 }
 
-export function SurveyDetailPage() {
+export const SurveyDetailPage: React.FunctionComponent = () => {
   const styles = useStyles();
   const { id } = useParams<{ id: string }>();
   const { data: survey, isLoading, error } = useSurvey(id!);
@@ -59,6 +65,15 @@ export function SurveyDetailPage() {
   const [currentResponses, setCurrentResponses] = React.useState<Record<string, AvailabilityStatus>>({});
 
   const isReadOnly = React.useMemo(() => myResponsesAnswerState?.state === 'answered' || survey?.status === 'closed', [myResponsesAnswerState, survey]);
+  const myStatusText = React.useMemo(() => {
+    if (myResponsesAnswerState?.state === 'answered') {
+      return 'Du hast bereits geantwortet';
+    }
+    if (survey?.status === 'closed') {
+      return 'Die Umfrage ist geschlossen';
+    }
+    return 'Die Umfrage ist noch offen, und du hast noch nicht geantwortet';
+  }, [myResponsesAnswerState, survey]);
   const isValidForAnswer = React.useMemo(() => {
     return Object.values(currentResponses).every((status) => status !== 'unknown');
   }, [currentResponses]);
@@ -134,19 +149,26 @@ export function SurveyDetailPage() {
           <Button icon={<ArrowLeft24Regular />}>Zurück zur Liste</Button>
         </Link>
       </div>
-
+      {myStatusText && (
+        <MessageBar>
+          <MessageBarBody>
+            <MessageBarTitle>Info:</MessageBarTitle>
+            {myStatusText}
+          </MessageBarBody>
+        </MessageBar>
+      )}
       <div className={styles.header}>
-        <h1>
-          {survey.title}
-          <span className={styles.statusBadge}>
-            {statusLabels[survey.status]}
-          </span>
-        </h1>
-        <Text>{survey.description}</Text>
+        <div><Title1>{survey.title}</Title1></div>
+        <Badge appearance="filled" color="brand" size="large">
+          {statusLabels[survey.status]}
+        </Badge>
+      </div>
+      <div className={styles.description}>
+        <Body1>{survey.description}</Body1>
       </div>
 
       <div className={styles.section}>
-        <h2>Dienste</h2>
+        <Subtitle1>Dienste</Subtitle1>
         {survey.dates.map((serviceDate) => {
           const myResponse = currentResponses[serviceDate.id]
 
@@ -156,7 +178,7 @@ export function SurveyDetailPage() {
               serviceDate={serviceDate}
               myResponse={myResponse}
               onResponseChange={handleResponseChange}
-              readOnly={survey.status !== 'active'}
+              readOnly={isReadOnly}
             />
           )
         })}
