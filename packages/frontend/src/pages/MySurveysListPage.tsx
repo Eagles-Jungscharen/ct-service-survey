@@ -1,9 +1,9 @@
-import { Button, Spinner, Text, makeStyles, tokens } from '@fluentui/react-components';
+import { Button, Spinner, Text, Title1, makeStyles, tokens } from '@fluentui/react-components';
 import { Edit24Regular } from '@fluentui/react-icons';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { SurveyCard } from '../components/SurveyCard';
+import { SurveyAndResponseCard } from '../components/SurveyAndResponseCard';
 import { useInvitedSurveys } from '../hooks/useSurveys';
 
 
@@ -63,22 +63,24 @@ export const MySurveysListPage: React.FunctionComponent = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <h1>Meine Umfragen</h1>
+                <div>
+                    <Title1>Meine Umfragen</Title1>
+                </div>
+                <div className={styles.buttonContainer}>
+                    <Button
+                        appearance="primary"
+                        icon={<Edit24Regular />}
+                        onClick={handleOpenByTag}
+                    >
+                        SurveyTag eingeben
+                    </Button>
+                </div>
             </div>
 
-            <div className={styles.buttonContainer}>
-                <Button
-                    appearance="primary"
-                    icon={<Edit24Regular />}
-                    onClick={handleOpenByTag}
-                >
-                    SurveyTag eingeben
-                </Button>
-            </div>
 
             <div className={styles.grid}>
                 {surveys?.map((survey) => (
-                    <SurveyCard key={survey.id} survey={survey} />
+                    <SurveyAndResponseCard key={survey.id} survey={survey} />
                 ))}
             </div>
 
