@@ -10,11 +10,9 @@ import { AssignmentsPage } from '../pages/AssignmentsPage'
 import { CallbackPage } from '../pages/CallbackPage'
 import { CreateSurveyWizard } from '../pages/CreateSurveyWizard'
 import { HomePage } from '../pages/HomePage'
-import { MyAssignmentsPage } from '../pages/MyAssignmentsPage'
 import { MySurveysListPage } from '../pages/MySurveysListPage'
 import { SurveyByTagPage } from '../pages/SurveyByTagPage'
 import { SurveyDetailPage } from '../pages/SurveyDetailPage'
-import { SurveyResponsePage } from '../pages/SurveyResponsePage'
 import { SurveysListPage } from '../pages/SurveysListPage'
 
 const useStyles = makeStyles({
@@ -88,12 +86,9 @@ export const AppContent: React.FunctionComponent = () => {
               <Link to="/surveys" className={styles.navLink}>
                 Umfragen
               </Link>
-              <Link to="/my-assignments" className={styles.navLink}>
-                Meine Einteilungen
-              </Link>
-              <Link to="/admin/surveys" className={styles.navLink}>
+              {auth.isAdmin && <Link to="/admin/surveys" className={styles.navLink}>
                 Verwaltung
-              </Link>
+              </Link>}
             </nav>
           </header>
         )}
@@ -119,22 +114,6 @@ export const AppContent: React.FunctionComponent = () => {
               element={
                 <ProtectedRoute>
                   <SurveyDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/surveys/:id/respond"
-              element={
-                <ProtectedRoute>
-                  <SurveyResponsePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/my-assignments"
-              element={
-                <ProtectedRoute>
-                  <MyAssignmentsPage />
                 </ProtectedRoute>
               }
             />
