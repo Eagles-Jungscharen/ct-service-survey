@@ -23,6 +23,7 @@ const useStyles = makeStyles({
         marginBottom: tokens.spacingVerticalL,
     },
     grid: {
+        marginTop: tokens.spacingVerticalL,
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         gap: tokens.spacingHorizontalL,
