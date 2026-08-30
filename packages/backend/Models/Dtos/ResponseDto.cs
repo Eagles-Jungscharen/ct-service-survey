@@ -7,16 +7,23 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Models.Dtos;
 /// </summary>
 public enum AvailabilityStatus
 {
+    [JsonStringEnumMemberName("unknown")]
     Unknown,
+    [JsonStringEnumMemberName("yes")]
     Yes,
+    [JsonStringEnumMemberName("no")]
     No,
+    [JsonStringEnumMemberName("maybe")]
     Maybe
 }
 
 public enum ResponseAnswerState
 {
+    [JsonStringEnumMemberName("notAnswered")]
     NotAnswered,
+    [JsonStringEnumMemberName("inEditing")]
     InEditing,
+    [JsonStringEnumMemberName("answered")]
     Answered,
 }
 

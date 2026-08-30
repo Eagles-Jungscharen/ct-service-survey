@@ -25,6 +25,7 @@ var exportedTypes = new[]
     typeof(CreateServiceDateRequest),
     typeof(ResponseDto),
     typeof(ResponseAnswerState),
+    typeof(ResponseAnswerStateDto),
     typeof(AvailabilityStatus),
     typeof(SubmitResponsesRequest),
     typeof(ServiceDateResponseRequest),

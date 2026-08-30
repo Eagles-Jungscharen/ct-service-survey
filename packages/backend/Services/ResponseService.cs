@@ -19,7 +19,7 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
         var responses = new List<ResponseDto>();
 
         // Alle Rückmeldungen des Users für diese Umfrage
-        var query = $"PartitionKey eq '{surveyId}' and userId eq '{userId}'";
+        var query = $"PartitionKey eq '{surveyId}' and UserId eq '{userId}'";
         var responseEntities = await _responsesTable.GetAllByQueryAsync(query);
         responses = [.. responseEntities.Where(e => e.Entity != null).Select(e => e.Entity).Select(MapToDto)];
         return responses;
@@ -47,7 +47,7 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
             try
             {
                 var response = await _responsesTable.GetByIdAsync(rowKey, request.SurveyId);
-                existingResponse = response.Entity;
+                existingResponse = response?.Entity;
             }
             catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
             {
@@ -94,7 +94,7 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
         try
         {
             var response = await _responsesAnswerStateTable.GetByIdAsync(rowKey, surveyId);
-            entity = response.Entity;
+            entity = response?.Entity;
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {
@@ -122,7 +122,7 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
         try
         {
             var response = await _responsesAnswerStateTable.GetByIdAsync(rowKey, surveyId);
-            entity = response.Entity;
+            entity = response?.Entity;
         }
         catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
         {

@@ -1,4 +1,4 @@
-import type { ResponseDto, SubmitResponsesRequest } from '@ct-service-survey/shared'
+import type { ResponseDto, SubmitResponsesRequest, ResponseAnswerStateDto } from '@ct-service-survey/shared'
 
 import { apiClient } from './client'
 
@@ -14,4 +14,8 @@ export const responsesApi = {
   // Antworten absenden
   submit: (data: SubmitResponsesRequest, token: string) =>
     apiClient.post<void>('/api/responses', token, data),
+
+  //Anwortstatus
+  getMyResponsesAnswerState: (surveyId: string, token: string) =>
+    apiClient.get<ResponseAnswerStateDto>(`/api/surveys/${surveyId}/responses/me/state`, token),
 }

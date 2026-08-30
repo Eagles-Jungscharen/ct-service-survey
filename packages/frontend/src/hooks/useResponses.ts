@@ -7,6 +7,7 @@ import { responsesApi } from '../services/api'
 // Query Keys
 const responseKeys = {
   myResponses: (surveyId: string) => ['responses', 'me', surveyId] as const,
+  myResponsesAnswerState: (surveyId: string) => ['responses', 'me', 'state', surveyId] as const,
   allResponses: (surveyId: string) => ['responses', 'all', surveyId] as const,
 }
 
@@ -19,6 +20,17 @@ export const useMyResponses = (surveyId: string) => {
     enabled: !!surveyId,
   })
 }
+
+// Eigene Antworten für den Antwortstatus einer Umfrage abrufen
+export const useMyResponsesAnswerState = (surveyId: string) => {
+  const auth = useAppAuth();
+  return useQuery({
+    queryKey: responseKeys.myResponsesAnswerState(surveyId),
+    queryFn: () => responsesApi.getMyResponsesAnswerState(surveyId, auth.token!),
+    enabled: !!surveyId,
+  })
+}
+
 
 // Alle Antworten für eine Umfrage abrufen (Admin)
 export const useAllResponses = (surveyId: string) => {
@@ -43,6 +55,9 @@ export const useSubmitResponses = () => {
       })
       void queryClient.invalidateQueries({
         queryKey: responseKeys.allResponses(variables.surveyId)
+      })
+      void queryClient.invalidateQueries({
+        queryKey: responseKeys.myResponsesAnswerState(variables.surveyId)
       })
     },
   })

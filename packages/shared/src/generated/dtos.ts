@@ -89,6 +89,11 @@ export interface PersonDto {
   email?: string;
 }
 
+export interface ResponseAnswerStateDto {
+  surveyId: string;
+  state: ResponseAnswerState;
+}
+
 export interface ResponseDto {
   responseId: string;
   surveyId: string;
