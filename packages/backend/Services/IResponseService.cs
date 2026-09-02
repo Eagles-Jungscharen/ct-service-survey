@@ -23,5 +23,6 @@ public interface IResponseService
     Task<List<ResponseDto>> SubmitResponsesAsync(SubmitResponsesRequest request, string userId, string userName);
 
     Task<ResponseAnswerStateDto> GetResponseAnswerStateAsync(string surveyId, string userId);
+    Task<List<ResponseAnswerStateDto>> GetAllResponseAnswerStateAsync(string surveyId);
     Task<ResponseAnswerStateDto> SubmitResponseAnswerStateAsync(string surveyId, string userId, ResponseAnswerState state);
 }

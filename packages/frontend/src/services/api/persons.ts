@@ -6,4 +6,6 @@ export const personsApi = {
   // Personen in ChurchTools suchen
   search: (query: string, token: string) =>
     apiClient.get<PersonDto[]>(`/api/persons/search?q=${encodeURIComponent(query)}`, token),
+  byId: (personId: string, token: string) =>
+    apiClient.get<PersonDto>(`/api/persons/byId/${personId}`, token),
 }

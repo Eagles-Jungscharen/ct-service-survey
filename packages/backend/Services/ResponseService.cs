@@ -105,15 +105,40 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
         {
             return new ResponseAnswerStateDto(
                 surveyId,
+                userId,
                 ResponseAnswerState.NotAnswered
             );
         }
 
         return new ResponseAnswerStateDto(
             surveyId,
+            userId,
             entity.State
         );
     }
+
+    public async Task<List<ResponseAnswerStateDto>> GetAllResponseAnswerStateAsync(string surveyId)
+    {
+        try
+        {
+            var response = await _responsesAnswerStateTable.GetAllAsync(surveyId);
+            if (response is null)
+            {
+                return [];
+            }
+            var answerStateDtos = response.Select(e => new ResponseAnswerStateDto(
+                surveyId,
+                e.Entity.UserId,
+                e.Entity.State
+            )).ToList();
+            return answerStateDtos;
+        }
+        catch (global::Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            throw;   // Noch kein Eintrag vorhanden
+        }
+    }
+
 
     public async Task<ResponseAnswerStateDto> SubmitResponseAnswerStateAsync(string surveyId, string userId, ResponseAnswerState state)
     {
@@ -148,6 +173,7 @@ public class ResponseService([FromKeyedServices("SurveyStorage")] ExtendedAzureT
 
         return new ResponseAnswerStateDto(
             surveyId,
+            userId,
             entity.State
         );
     }

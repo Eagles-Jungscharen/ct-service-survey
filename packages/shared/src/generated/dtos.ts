@@ -91,6 +91,7 @@ export interface PersonDto {
 
 export interface ResponseAnswerStateDto {
   surveyId: string;
+  userId: string;
   state: ResponseAnswerState;
 }
 

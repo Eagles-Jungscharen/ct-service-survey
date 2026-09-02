@@ -18,4 +18,7 @@ export const responsesApi = {
   //Anwortstatus
   getMyResponsesAnswerState: (surveyId: string, token: string) =>
     apiClient.get<ResponseAnswerStateDto>(`/api/surveys/${surveyId}/responses/me/state`, token),
+  // Alle Antwortstatus für eine Umfrage abrufen (Admin)
+  getAllResponsesAnswerState: (surveyId: string, token: string) =>
+    apiClient.get<ResponseAnswerStateDto[]>(`/api/surveys/${surveyId}/responses/all/state`, token),
 }

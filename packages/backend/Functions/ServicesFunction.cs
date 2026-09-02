@@ -13,7 +13,7 @@ namespace EaglesJungscharen.Azure.ServiceSurvey.Functions;
 /// <summary>
 /// Azure Function für ChurchTools Services (Dienste)
 /// </summary>
-public class ServicesFunction(ILogger<ServicesFunction> logger,IChurchToolsService churchToolsService, IMemoryCache cache, IMeService meService) : AbstractFunctionBase(logger, cache, meService)
+public class ServicesFunction(ILogger<ServicesFunction> logger, IChurchToolsService churchToolsService, IMemoryCache cache, IMeService meService) : AbstractFunctionBase(logger, cache, meService)
 {
     private readonly ILogger<ServicesFunction> _logger = logger;
     private readonly IChurchToolsService _churchToolsService = churchToolsService;
@@ -58,7 +58,7 @@ public class ServicesFunction(ILogger<ServicesFunction> logger,IChurchToolsServi
             try
             {
                 var query = request.Query["q"].ToString();
-                
+
                 if (string.IsNullOrWhiteSpace(query))
                 {
                     return new BadRequestObjectResult(new ErrorRecord("Suchbegriff 'q' fehlt.", 2001));
@@ -71,6 +71,33 @@ public class ServicesFunction(ILogger<ServicesFunction> logger,IChurchToolsServi
             {
                 _logger.LogError(ex, "Fehler beim Suchen von Personen in ChurchTools.");
                 return new ObjectResult(new ErrorRecord("Fehler beim Suchen von Personen.", 5001))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
+    }
+
+    [Function("PersonById")]
+    public async Task<IActionResult> PersonById(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "persons/byId/{personId}")] HttpRequest req,
+        string personId)
+    {
+        return await ExecuteAsync(req, async (request, meDto) =>
+        {
+            try
+            {
+                var person = await _churchToolsService.GetPersonByIdAsync(personId);
+                if (person == null)
+                {
+                    return new NotFoundObjectResult(new ErrorRecord("Person nicht gefunden.", 2002));
+                }
+                return new OkObjectResult(person);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Abrufen der Person aus ChurchTools.");
+                return new ObjectResult(new ErrorRecord("Fehler beim Abrufen der Person.", 5002))
                 {
                     StatusCode = 500
                 };

@@ -5,9 +5,11 @@ import {
 import { useParams, Link } from 'react-router-dom';
 
 import { ActivateSurveySection } from '../components/adminSurveyManagePage/ActivateSurveySection';
+import { InvityAndResponseStatus } from '../components/adminSurveyManagePage/InvityAndResponseStatus';
 import { SurveyAccessSection } from '../components/adminSurveyManagePage/SurveyAccessSection';
 import { SurveyBasicDataSection } from '../components/adminSurveyManagePage/SurveyBasicDataSection';
 import { ServiceDateCard } from '../components/ServiceDateCard';
+import { useAllResponses, useAllResponsesAnswerState } from '../hooks/useResponses';
 import { useSurvey, useDeleteServiceDate } from '../hooks/useSurveys';
 
 const useStyles = makeStyles({
@@ -34,13 +36,20 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'flex-start',
     gap: tokens.spacingHorizontalL,
-  }
+  },
+  sectionHeaderLeft: {
+    marginBottom: tokens.spacingVerticalXL,
+    maxWidth: '600px',
+    width: '100%',
+  },
 });
 
 export const AdminSurveyManagePage = () => {
   const styles = useStyles()
   const { id } = useParams<{ id: string }>()
   const { data: survey, isLoading } = useSurvey(id!)
+  const { data: allResponsesAnswerState, isLoading: isLoadingAllResponsesAnswerState } = useAllResponsesAnswerState(id!);
+  const { data: allResponse, isLoading: isLoadingAllResponses } = useAllResponses(id!)
 
   const deleteServiceDateMutation = useDeleteServiceDate()
 
@@ -53,7 +62,7 @@ export const AdminSurveyManagePage = () => {
     })
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingAllResponsesAnswerState || isLoadingAllResponses) {
     return (
       <div className={styles.container}>
         <Spinner label="Umfrage wird geladen..." />
@@ -81,16 +90,23 @@ export const AdminSurveyManagePage = () => {
         <h1>Umfrage bearbeiten</h1>
       </div>
       <div className={styles.headerRow}>
-        {/* Aktivierungssektion bei Draft-Status */}
-        {survey.status === 'draft' && id && (
-          <ActivateSurveySection id={id} />
-        )}
+        <div className={styles.sectionHeaderLeft}>
+          {/* Aktivierungssektion bei Draft-Status */}
+          {survey.status === 'draft' && id && (
+            <ActivateSurveySection id={id} />
+          )}
 
-        {/* TAG-Anzeige bei aktivierter Umfrage */}
-        {survey.accessTag && (
-          <SurveyAccessSection accessTag={survey.accessTag} />
-        )}
-
+          {/* TAG-Anzeige bei aktivierter Umfrage */}
+          {survey.accessTag && (
+            <SurveyAccessSection accessTag={survey.accessTag} />
+          )}
+          {survey.status !== 'draft' && id && allResponsesAnswerState && (
+            <InvityAndResponseStatus
+              invitedPeopleIds={survey.invitedPersonIds!}
+              allResponsesAnswerState={allResponsesAnswerState}
+            />
+          )}
+        </div>
         <SurveyBasicDataSection
           survey={survey}
         />
@@ -104,6 +120,7 @@ export const AdminSurveyManagePage = () => {
             serviceDate={serviceDate}
             onDelete={handleDeleteServiceDate}
             surveyStatus={survey.status}
+            currentResponses={allResponse ? allResponse.filter(response => response.serviceDateId === serviceDate.id) : []}
           />
         ))}
 

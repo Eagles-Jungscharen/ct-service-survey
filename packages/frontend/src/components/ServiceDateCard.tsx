@@ -1,14 +1,16 @@
-import type { ServiceDateDto, SurveyStatus } from '@ct-service-survey/shared';
+import type { ResponseDto, ServiceDateDto, SurveyStatus } from '@ct-service-survey/shared';
 import { Body1, Button, Card, CardHeader, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, Subtitle2 } from '@fluentui/react-components';
 import { Delete24Regular, MoreVertical24Regular } from '@fluentui/react-icons';
 import React from 'react';
 
 import { useFormattedDate } from '../hooks/useFormattedDate';
 import { useFormattedTime } from '../hooks/useFormattedTime';
+import { ResponseSummary } from './adminSurveyManagePage/ResponseSummary';
 
 interface ServiceDateCardProps {
     serviceDate: ServiceDateDto;
     surveyStatus: SurveyStatus;
+    currentResponses: ResponseDto[];
     onDelete: (serviceDateId: string) => void;
 }
 
@@ -39,6 +41,11 @@ export const ServiceDateCard = (props: ServiceDateCardProps) => {
                         </MenuList>
                     </MenuPopover>
                 </Menu> : undefined} />
+            {props.currentResponses.length > 0 && (
+                <ResponseSummary
+                    currentResponses={props.currentResponses}
+                />
+            )}
         </Card>
     );
 };

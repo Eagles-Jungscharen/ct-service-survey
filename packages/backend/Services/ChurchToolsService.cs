@@ -156,6 +156,36 @@ public class ChurchToolsService(
         return persons;
     }
 
+    public async Task<PersonDto?> GetPersonByIdAsync(string personId)
+    {
+        if (string.IsNullOrWhiteSpace(personId))
+        {
+            return null;
+        }
+
+        var ctClient = _clientFactory.Create();
+
+        var personResponse = await ctClient.Persons[personId].GetAsWithPersonGetResponseAsync();
+
+        if (personResponse?.Data == null)
+        {
+            _logger.LogWarning("Person with ID {PersonId} not found in ChurchTools API", personId);
+            return null;
+        }
+
+        var personData = personResponse.Data;
+        var id = personData.Id.ToString();
+        var firstName = personData.FirstName ?? "";
+        var lastName = personData.LastName ?? "";
+        var email = personData.Email;
+
+        return new PersonDto(
+            Id: id!,
+            Name: $"{firstName} {lastName}",
+            Email: email
+        );
+    }
+
     /// <summary>
     /// Hilfsmethode für case-insensitive String-Vergleich
     /// </summary>

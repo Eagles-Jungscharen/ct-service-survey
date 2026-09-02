@@ -96,6 +96,30 @@ public class ResponsesFunction(
         });
     }
 
+    [Function("GetAllResponseAnswerState")]
+    public async Task<IActionResult> GetAllResponseAnswerState(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "surveys/{surveyId}/responses/all/state")] HttpRequest req,
+        string surveyId)
+    {
+        return await ExecuteAsync(req, async (request, meDto) =>
+        {
+            try
+            {
+                var userId = meDto.UserId;
+                var responseAnswerState = await _responseService.GetAllResponseAnswerStateAsync(surveyId);
+                return new OkObjectResult(responseAnswerState);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Abrufen des Antwortstatus für Umfrage {SurveyId}.", surveyId);
+                return new ObjectResult(new ErrorRecord("Fehler beim Abrufen des Antwortstatus.", 5000))
+                {
+                    StatusCode = 500
+                };
+            }
+        });
+    }
+
     [Function("SubmitResponses")]
     public async Task<IActionResult> SubmitResponses(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "responses")] HttpRequest req)

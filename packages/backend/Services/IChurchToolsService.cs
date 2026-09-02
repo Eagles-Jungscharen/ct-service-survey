@@ -28,4 +28,11 @@ public interface IChurchToolsService
     /// <param name="maxResults">Maximale Anzahl Ergebnisse</param>
     /// <returns>Liste von gefundenen Personen</returns>
     Task<List<PersonDto>> SearchPersonsAsync(string query, int maxResults = 10);
+
+    /// <summary>
+    /// Holt eine Person aus ChurchTools anhand der Personen-ID
+    /// </summary>
+    /// <param name="personId">ID der Person</param>
+    /// <returns>Gefundene Person oder null, wenn nicht gefunden</returns>
+    Task<PersonDto?> GetPersonByIdAsync(string personId);
 }

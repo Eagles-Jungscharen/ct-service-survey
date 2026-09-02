@@ -29,6 +29,7 @@ public enum ResponseAnswerState
 
 public record ResponseAnswerStateDto(
     string SurveyId,
+    string UserId,
     [property: JsonConverter(typeof(JsonStringEnumConverter))]
     ResponseAnswerState State);
 
